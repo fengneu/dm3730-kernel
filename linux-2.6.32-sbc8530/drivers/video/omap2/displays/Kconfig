@@ -1,0 +1,85 @@
+menu "OMAP2/3 Display Device Drivers"
+        depends on OMAP2_DSS
+
+config PANEL_GENERIC
+        tristate "Generic Panel"
+        help
+	  Generic panel driver.
+	  Used for DVI output for Beagle and OMAP3 SDP.
+
+config PANEL_LGPHILIPS_LB035Q02
+	tristate "LG.Philips LB035Q02 LCD Panel"
+	depends on OMAP2_DSS
+	help
+	  LCD Panel used on Overo Palo35
+
+config PANEL_SAMSUNG_LTE430WQ_F0C
+        tristate "Samsung LTE430WQ-F0C LCD Panel"
+        depends on OMAP2_DSS
+        help
+          LCD Panel used on Overo Palo43
+
+config PANEL_SHARP_LS037V7DW01
+        tristate "Sharp LS037V7DW01 LCD Panel"
+        depends on OMAP2_DSS
+        help
+          LCD Panel used in TI's SDP3430 and EVM boards
+
+config PANEL_SHARP_LQ043T1DG01
+        tristate "Sharp LQ043T1DG01 LCD Panel"
+        depends on OMAP2_DSS
+        help
+          LCD Panel used in TI's OMAP3517 EVM boards
+
+config PANEL_DEVKIT8500
+        tristate "Devkit8500 LCD Panel"
+        depends on OMAP2_DSS && MACH_OMAP3_DEVKIT8500
+        help
+          LCD Panel used in Timll Devkit8500 boards
+
+config PANEL_DM3730_EVK
+        tristate "DM3730_EVK LCD Panel"
+        depends on OMAP2_DSS && MACH_DM3730_EVK
+        help
+          LCD Panel used in Timll DM3730_EVK boards
+
+config PANEL_SBC8510
+        tristate "SBC8510 LCD Panel"
+        depends on OMAP2_DSS && MACH_OMAP3_SBC8510
+        help
+          LCD Panel used in Timll SBC8510 boards
+
+config PANEL_SBC8100_PLUS
+        tristate "SBC8100_PLUS LCD Panel"
+        depends on OMAP2_DSS && MACH_OMAP3_SBC8100_PLUS
+        help
+          LCD Panel used in Timll SBC8100_PLUS boards
+
+config PANEL_SBC8530
+        tristate "SBC8530 LCD Panel"
+        depends on OMAP2_DSS && MACH_OMAP3_SBC8530
+        help
+          LCD Panel used in Timll SBC8530 boards
+
+choice
+        prompt PANEL_TYPE
+        depends on PANEL_DEVKIT8500 || PANEL_DM3730_EVK || PANEL_SBC8510 || PANEL_SBC8530 ||  PANEL_SBC8100_PLUS
+        default LCD_43inch
+	
+config LCD_43inch
+        bool "4.3 inch LCD support"
+
+config LCD_7inch
+        bool "7 inch LCD support"
+
+config VGA
+        bool "VGA support"
+endchoice
+
+config PANEL_TAAL
+        tristate "Taal DSI Panel"
+        depends on OMAP2_DSS_DSI
+        help
+          Taal DSI command mode panel from TPO.
+
+endmenu
