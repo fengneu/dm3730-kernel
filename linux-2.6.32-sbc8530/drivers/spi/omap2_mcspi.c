@@ -88,6 +88,8 @@
 #define OMAP2_MCSPI_CHCONF_IS		BIT(18)
 #define OMAP2_MCSPI_CHCONF_TURBO	BIT(19)
 #define OMAP2_MCSPI_CHCONF_FORCE	BIT(20)
+#define OMAP2_MCSPI_CHCONF_SBE		BIT(23)	/* Start-Bit */
+#define OMAP2_MCSPI_CHCONF_SBPOL	BIT(24)	/* StartBit Polarity */
 
 #define OMAP2_MCSPI_CHSTAT_RXS		BIT(0)
 #define OMAP2_MCSPI_CHSTAT_TXS		BIT(1)
@@ -595,6 +597,19 @@ static int omap2_mcspi_setup_transfer(struct spi_device *spi,
 		div = 15;
 
 	l = mcspi_cached_chconf0(spi);
+
+#if 0		/* JasperZhang 20170614, for LG4573A LCD */
+	/* SPI_3WIRE, For MCSPI SBE(Start-Bit mode),  
+	   * bits_per_word set 0 for command, and 8 for data.
+	   */
+	if ((spi->chip_select == 1) &&  t->bits_per_word)
+		l |= OMAP2_MCSPI_CHCONF_SBE|OMAP2_MCSPI_CHCONF_SBPOL;
+	else if (spi->chip_select == 1) {
+		l &= ~OMAP2_MCSPI_CHCONF_SBPOL;
+		l |= OMAP2_MCSPI_CHCONF_SBE;
+	} else
+		l &= ~(OMAP2_MCSPI_CHCONF_SBE|OMAP2_MCSPI_CHCONF_SBPOL);
+#endif
 
 	/* standard 4-wire master mode:  SCK, MOSI/out, MISO/in, nCS
 	 * REVISIT: this controller could support SPI_3WIRE mode.
