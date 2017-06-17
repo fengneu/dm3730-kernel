@@ -951,9 +951,12 @@ static struct ehci_hcd_omap_platform_data ehci_pdata __initdata = {
 #define USB_HUB_RESET	13
 static void __init usb_hub_init(void)
 {
-        gpio_request(USB_HUB_RESET, "HUB_RESET");
+	if (gpio_request(USB_HUB_RESET, "HUB_RESET") < 0)
+		printk(KERN_ERR "can't get HUB_RESET GPIO\n");
 
-        gpio_direction_output(USB_HUB_RESET, 1);      
+	msleep(200);	/* JasperZhang: Must be later, later, and later!! */
+
+	gpio_direction_output(USB_HUB_RESET, 1);      
 	udelay(10);
 	gpio_direction_output(USB_HUB_RESET, 0);	
 }
