@@ -102,6 +102,11 @@ config MACH_OMAP3_SOC8600
         depends on ARCH_OMAP3 && ARCH_OMAP34XX
         select OMAP_PACKAGE_CBB
 
+config MACH_OMAP3_AUTOGET
+        bool "OMAP3 AutoGet board"
+        depends on ARCH_OMAP3 && ARCH_OMAP34XX
+        select OMAP_PACKAGE_CBB
+
 config MACH_OMAP_LDP
 	bool "OMAP3 LDP board"
 	depends on ARCH_OMAP3 && ARCH_OMAP34XX

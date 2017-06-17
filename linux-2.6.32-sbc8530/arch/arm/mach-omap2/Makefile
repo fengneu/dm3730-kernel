@@ -108,6 +108,11 @@ obj-$(CONFIG_MACH_OMAP3_SBC8530)        += board-omap3sbc8530.o \
 obj-$(CONFIG_MACH_OMAP3_SOC8600)     	+= board-omap3soc8600.o \
                                            mmc-twl4030.o\
                                            board-omap3soc8600-camera.o
+# JasperZhang: Add AutoGet Board
+obj-$(CONFIG_MACH_OMAP3_AUTOGET)        += board-omap3autoget.o \
+                                           mmc-twl4030.o\
+                                           board-omap3autoget-camera.o
+
 obj-$(CONFIG_MACH_OMAP_LDP)		+= board-ldp.o \
 					   mmc-twl4030.o \
 					   board-ldp-camera.o
