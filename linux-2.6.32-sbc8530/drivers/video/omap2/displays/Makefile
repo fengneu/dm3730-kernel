@@ -8,5 +8,6 @@ obj-$(CONFIG_PANEL_DM3730_EVK) += panel-dm3730_evk.o
 obj-$(CONFIG_PANEL_SBC8510) += panel-omap3-sbc8510.o
 obj-$(CONFIG_PANEL_SBC8100_PLUS) += panel-omap3-sbc8100_plus.o
 obj-$(CONFIG_PANEL_SBC8530) += panel-omap3-sbc8530.o
+obj-$(CONFIG_PANEL_AUTOGET) += panel-omap3-autoget.o
 
 obj-$(CONFIG_PANEL_TAAL) += panel-taal.o

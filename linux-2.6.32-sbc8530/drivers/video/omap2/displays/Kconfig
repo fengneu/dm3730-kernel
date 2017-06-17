@@ -61,13 +61,23 @@ config PANEL_SBC8530
         help
           LCD Panel used in Timll SBC8530 boards
 
+config PANEL_AUTOGET
+        tristate "AutoGet LCD Panel"
+        depends on OMAP2_DSS && MACH_OMAP3_AUTOGET
+        help
+          LCD Panel used in Timll AutoGet boards
+
+
 choice
         prompt PANEL_TYPE
-        depends on PANEL_DEVKIT8500 || PANEL_DM3730_EVK || PANEL_SBC8510 || PANEL_SBC8530 ||  PANEL_SBC8100_PLUS
+        depends on PANEL_DEVKIT8500 || PANEL_DM3730_EVK || PANEL_SBC8510 || PANEL_SBC8530 ||  PANEL_SBC8100_PLUS || PANEL_AUTOGET
         default LCD_43inch
 	
 config LCD_43inch
         bool "4.3 inch LCD support"
+
+config LCD_32inch
+        bool "3.2 inch LCD support"
 
 config LCD_7inch
         bool "7 inch LCD support"
