@@ -1095,6 +1095,13 @@ config UV_MMTIMER
 	  The uv_mmtimer device allows direct userspace access to the
 	  UV system timer.
 
+config WEIDU_HWC
+	tristate "WeiDu Board's Hardware Control"
+	depends on MACH_OMAP3_AUTOGET
+	default y
+	help
+	  WeiDu linux misc char device to control hardware IO and custmize funcs.
+
 source "drivers/char/tpm/Kconfig"
 
 config TELCLOCK
