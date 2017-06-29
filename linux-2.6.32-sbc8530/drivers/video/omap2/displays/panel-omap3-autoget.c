@@ -23,7 +23,7 @@
 
 #include <plat/display.h>
 
-#define USE_GPIO	1
+#define USE_GPIO	0
 #ifdef USE_GPIO
 #define PANEL_PIN_CS		175	
 #define PANEL_PIN_SCL	171
@@ -34,17 +34,29 @@ static struct spi_device	*spidev;
 
 static struct omap_video_timings lg4573_timings = {
 #ifdef CONFIG_LCD_32inch
-        .x_res          = 480,
-        .y_res          = 800,
+		.x_res          = 480,
+		.y_res          = 800,
 
-        .hsw            = 16,   /* 0xB5:SDT=0x10?  */
-        .hfp            = 10,      /* right_margin (4) - 1 */
-        .hbp            = 30,      /* 0xB1: HBP=0x1E */
-        .vsw            = 16,       /* vsync_len (2) - 1 */
-        .vfp            = 10,     /* lower_margin */
-        .vbp            = 12,     /* 0xB1: VBP=0xC */
+		.hsw            = 16,   /* 0xB5:SDT=0x10?  */
+		.hfp            = 10,      /* right_margin (4) - 1 */
+		.hbp            = 30,      /* 0xB1: HBP=0x1E */
+		.vsw            = 16,       /* vsync_len (2) - 1 */
+		.vfp            = 10,     /* lower_margin */
+		.vbp            = 12,     /* 0xB1: VBP=0xC */
 
-        .pixel_clock    = 36000,
+		.pixel_clock    = 36000,
+#elif defined(CONFIG_LCD_7inch)
+		.x_res			= 800,
+		.y_res			= 480,
+
+		.hsw			= 48,	/* hsync_len (4) - 1 */
+		.hfp			= 1,	  /* right_margin (4) - 1 */
+		.hbp			= 1,	  /* left_margin (40) - 1 */
+		.vsw			= 3,	   /* vsync_len (2) - 1 */
+		.vfp			= 12,	  /* lower_margin */
+		.vbp			= 25,	  /* upper_margin (8) - 1 */
+	
+		.pixel_clock	= 36000,
 #endif
 };
 
@@ -174,6 +186,10 @@ static int lg4573_write_reg(u8 val, int is_command)
 static int lg4573_panel_enable(struct omap_dss_device *dssdev)
 {
 	int r = 0;
+
+#ifdef CONFIG_LCD_7inch
+	return r;
+#endif
 
 	pr_info("lg4573: panel_enable: 0x%px\n", spidev);
 	/* wait couple of vsyncs until enabling the LCD */

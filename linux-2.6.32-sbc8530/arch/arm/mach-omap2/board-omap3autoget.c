@@ -846,12 +846,12 @@ struct spi_board_info omap3autoget_spi_board_info[] = {
 	},
 #if defined(CONFIG_VIDEO_EV76C570) || defined(CONFIG_VIDEO_EV76C570_MODULE)
 	[2] = {
-		.modalias		= "ev76c570-spi",
+		.modalias		= "ev76c570",
 		.bus_num		= 1,
 		.chip_select		= 2,
-		.max_speed_hz	= 500000,
-		.mode			= SPI_MODE_3,
-		.platform_data 		= &autoget_ev76c570_platform_data;
+		.max_speed_hz	= 800000,
+		.mode			= SPI_MODE_2,
+		.platform_data 		= &autoget_ev76c570_platform_data,
 	},
 #endif
 #if defined(CONFIG_SPI_SPIDEV) || defined(CONFIG_SPI_SPIDEV_MODULE)
@@ -975,10 +975,10 @@ static void __init omap3_autoget_init(void)
 	omap3_autoget_i2c_init();
 	platform_add_devices(omap3_autoget_devices,
 			ARRAY_SIZE(omap3_autoget_devices));
-#if 0
+
         spi_register_board_info(omap3autoget_spi_board_info,
                                 ARRAY_SIZE(omap3autoget_spi_board_info));
-#endif
+
 	omap_serial_init();
 
 	usb_musb_init();

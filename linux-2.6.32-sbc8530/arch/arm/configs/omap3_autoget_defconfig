@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Linux kernel version: 2.6.32
-# Sat Jun 24 15:49:17 2017
+# Thu Jun 29 19:47:00 2017
 #
 CONFIG_ARM=y
 CONFIG_SYS_SUPPORTS_APM_EMULATION=y
@@ -1208,6 +1208,7 @@ CONFIG_VIDEO_CAPTURE_DRIVERS=y
 # CONFIG_VIDEO_MT9V011 is not set
 # CONFIG_VIDEO_TCM825X is not set
 # CONFIG_VIDEO_MT9P012 is not set
+CONFIG_VIDEO_EV76C570=y
 # CONFIG_VIDEO_DW9710 is not set
 # CONFIG_VIDEO_OV2656 is not set
 # CONFIG_VIDEO_OV3640 is not set

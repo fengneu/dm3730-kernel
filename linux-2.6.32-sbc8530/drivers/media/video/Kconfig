@@ -344,6 +344,15 @@ config VIDEO_MT9P012
 	  MT9P012 camera.  It is currently working with the TI OMAP3
 	  camera controller.
 
+config VIDEO_EV76C570
+	tristate "E2V EV76C570 sensor support"
+	depends on SPI && VIDEO_V4L2
+	---help---
+	  This is a Video4Linux2 sensor-level driver for the E2V EV76C570
+	  2Mpixels B&W and Color CMOS camera. It is currently working with
+	  the TI OMAP3 camera controller.
+
+
 config VIDEO_DW9710
 	tristate "Lens driver for DW9710"
 	depends on I2C && VIDEO_V4L2
