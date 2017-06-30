@@ -23,7 +23,12 @@
 
 #include <plat/display.h>
 
+#ifdef CONFIG_LCD_32inch
+#define USE_GPIO	1
+#else
 #define USE_GPIO	0
+#endif
+
 #ifdef USE_GPIO
 #define PANEL_PIN_CS		175	
 #define PANEL_PIN_SCL	171

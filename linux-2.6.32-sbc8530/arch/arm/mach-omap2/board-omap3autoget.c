@@ -837,6 +837,7 @@ struct spi_board_info omap3autoget_spi_board_info[] = {
 		.irq			= OMAP_GPIO_IRQ(OMAP3_AUTOGET_TS_GPIO),
 		.platform_data		= &ads7846_config,
 	},
+#if 0	/* Mask it for temporary */
 	[1] = {
 		.modalias		= "lg4573_panel-spi",
 		.bus_num		= 1,
@@ -844,13 +845,14 @@ struct spi_board_info omap3autoget_spi_board_info[] = {
 		.max_speed_hz	= 500000,
 		.mode			= SPI_MODE_3,
 	},
+#endif
 #if defined(CONFIG_VIDEO_EV76C570) || defined(CONFIG_VIDEO_EV76C570_MODULE)
 	[2] = {
 		.modalias		= "ev76c570",
 		.bus_num		= 1,
 		.chip_select		= 2,
 		.max_speed_hz	= 800000,
-		.mode			= SPI_MODE_2,
+		.mode			= SPI_MODE_0,
 		.platform_data 		= &autoget_ev76c570_platform_data,
 	},
 #endif
