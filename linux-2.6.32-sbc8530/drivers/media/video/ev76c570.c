@@ -4,6 +4,7 @@
  * Copyright(C) 2017 Jasper Zhang
  *
  */
+#define DEBUG 	1
 
 #include <linux/init.h>
 #include <linux/err.h>
@@ -351,7 +352,6 @@ static int ev76c570_write_reg(struct spi_device *spi, u8 data_length,
 
 static int ev76c570_read_reg16(struct spi_device *spi, u8 reg, u16 *val)
 {
-	DECLARE_COMPLETION_ONSTACK(done);
 	struct spi_message msg;
 	struct spi_transfer addr_xfer = {
 		.len		= 1,
@@ -834,12 +834,14 @@ static int ioctl_dev_init(struct v4l2_int_device *s)
 	struct spi_device *spidev = sensor->spi;
 	int err;
 
+#if 0
 	err = ev76c570_detect(spidev);
 	if (err < 0) {
 		dev_err(&spidev->dev, "Unable to detect sensor\n");
 		sensor->detected = 0;
 		return err;
 	}
+#endif
 	sensor->detected = 1;
 	sensor->chipid = err;
 	dev_dbg(&spidev->dev, "Chip ID 0x%02x detected\n", sensor->chipid);
@@ -935,8 +937,6 @@ static int ioctl_s_power(struct v4l2_int_device *s, enum v4l2_power new_power)
 			rval = ioctl_dev_init(s);
 			if (rval)
 				goto err_on;
-			/* Initial sensor */
-			ev76c570_configure(s);
 		}
 		break;
 	case V4L2_POWER_OFF:
@@ -1070,11 +1070,12 @@ static int __devexit ev76c570_remove(struct spi_device *spi)
 	kfree(sensor->pdata);
 	kfree(sensor);
 
+	return 0;
 }
 
 static struct spi_driver ev76c570_driver = {
 	.driver = {
-		.name	= "ev76c570-spi",
+		.name	= "ev76c570",
 		.bus	= &spi_bus_type,
 		.owner	= THIS_MODULE,
 	},
@@ -1097,4 +1098,3 @@ module_exit(ev76c570_exit);
 
 MODULE_DESCRIPTION("EV76C570 CMOS Sensor Driver");
 MODULE_LICENSE("GPL");
-MODULE_ALIAS("spi:ev76c570");

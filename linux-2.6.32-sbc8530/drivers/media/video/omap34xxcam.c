@@ -31,7 +31,7 @@
  * 02110-1301 USA
  *
  */
-
+#define DEBUG	1
 #include <linux/videodev2.h>
 #include <linux/version.h>
 #include <linux/sched.h>
