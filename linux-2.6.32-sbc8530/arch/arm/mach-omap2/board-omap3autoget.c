@@ -851,7 +851,7 @@ struct spi_board_info omap3autoget_spi_board_info[] = {
 		.modalias		= "ev76c570",
 		.bus_num		= 1,
 		.chip_select		= 2,
-		.max_speed_hz	= 800000,
+		.max_speed_hz	= 1500000,
 		.mode			= SPI_MODE_0,
 		.platform_data 		= &autoget_ev76c570_platform_data,
 	},

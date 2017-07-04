@@ -35,7 +35,7 @@ static int cam_inited;
 
 #if defined(CONFIG_VIDEO_EV76C570) || defined(CONFIG_VIDEO_EV76C570_MODULE)
 #define GPIO_CAM_TRIG		167
-#define GPIO_CAM_RSTN		126
+#define GPIO_CAM_RSTN		98
 #include <media/ev76c570.h>
 
 #define EV76C570_BIGGEST_FRAME_BYTE_SIZE	PAGE_ALIGN(1600 * 1200 * 2)
@@ -43,7 +43,7 @@ static int cam_inited;
 static struct omap34xxcam_sensor_config ev76c570_hwc = {
 	.sensor_isp = 1,
 	.capture_mem = EV76C570_BIGGEST_FRAME_BYTE_SIZE * 2,
-	.ival_default	= { 1, 10 },
+	.ival_default	= { 1, 15 },
 };
 
 static struct isp_interface_config ev76c570_if_config = {

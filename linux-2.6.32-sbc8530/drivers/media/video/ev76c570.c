@@ -28,13 +28,13 @@
 #define EV76C570_GAIN_STEP   	0x1
 
 
-/* Still capture 8 MP */
+/* capture 2 MP */
 #define EV76C570_IMAGE_WIDTH_MAX	1600
 #define EV76C570_IMAGE_HEIGHT_MAX	1200
-#define EV76C570_IMAGE_WIDTH_DEF	1280
-#define EV76C570_IMAGE_HEIGHT_DEF	1024
+#define EV76C570_IMAGE_WIDTH_DEF	1600	//1280
+#define EV76C570_IMAGE_HEIGHT_DEF	1200	//1024
 
-/* MT9P012 has 8/16/32 registers */
+/* EV76C570 has 8/16 registers */
 #define EV76C570_8BIT			1
 #define EV76C570_16BIT			2
 
@@ -328,7 +328,7 @@ static int ev76c570_write_reg(struct spi_device *spi, u8 data_length,
 	struct spi_message msg;
 	struct spi_transfer wreg_xfer = {
 		.len		= 3,
-		.delay_usecs	= 50,
+		//.delay_usecs	= 50,
 	};
 	u8	buffer[4];
 
@@ -350,6 +350,7 @@ static int ev76c570_write_reg(struct spi_device *spi, u8 data_length,
 	return spi_sync(spi, &msg);
 }
 
+#if 1
 static int ev76c570_read_reg16(struct spi_device *spi, u8 reg, u16 *val)
 {
 	struct spi_message msg;
@@ -366,14 +367,36 @@ static int ev76c570_read_reg16(struct spi_device *spi, u8 reg, u16 *val)
 	/* register read */
 	buffer[0] = reg & 0x7f;	/* first bit = 0 */
 	addr_xfer.tx_buf = buffer;
+	addr_xfer.rx_buf = NULL;
 	spi_message_add_tail(&addr_xfer, &msg);
-	
+
+	val_xfer.tx_buf = NULL;
 	val_xfer.rx_buf = val;
 	spi_message_add_tail(&val_xfer, &msg);
 
 	return spi_sync(spi, &msg);
 }
+#else
+static int ev76c570_read_reg16(struct spi_device *spi, u8 reg, u16 *val)
+{
+	struct spi_message msg;
+	struct spi_transfer xfer = {
+		.len		= 1,
+	};
+	u8	buffer[8];
 
+	spi_message_init(&msg);
+
+	/* register read */
+	buffer[0] = reg & 0x7f;	/* first bit = 0 */
+	xfer.tx_buf = buffer;
+	xfer.rx_buf = val;
+	spi_message_add_tail(&xfer, &msg);
+	
+	return spi_sync(spi, &msg);
+}
+
+#endif
 /**
  * ev76c570_write_regs - Initializes a list of EV76C570 registers
  * @spidev: spi driver client structure
@@ -494,11 +517,11 @@ static int ev76c570_detect(struct spi_device *spidev)
 	dev_info(&spidev->dev, "Chip id detected 0x%x \n", chipid);
 	if (chipid != EV76C570_CHIP_ID) {
 		/* We didn't read the values we expected, so
-		 * this must not be an MT9P012.
+		 * this must not be an EV76C570?
 		 */
 		dev_warn(&spidev->dev, "Chip id mismatch 0x%x \n", chipid);
 
-		return -ENODEV;
+//		return -ENODEV;
 	}
 	return 0;
 
@@ -834,7 +857,7 @@ static int ioctl_dev_init(struct v4l2_int_device *s)
 	struct spi_device *spidev = sensor->spi;
 	int err;
 
-#if 0
+#if 1
 	err = ev76c570_detect(spidev);
 	if (err < 0) {
 		dev_err(&spidev->dev, "Unable to detect sensor\n");
