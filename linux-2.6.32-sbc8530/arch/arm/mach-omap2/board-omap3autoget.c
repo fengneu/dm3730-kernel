@@ -34,6 +34,7 @@
 #include <linux/i2c/twl.h>
 
 #include <linux/spi/spi.h>
+#include <linux/spi/spi_gpio.h>
 #include <linux/spi/ads7846.h>
 
 #include <linux/backlight.h>
@@ -349,6 +350,7 @@ static struct regulator_consumer_supply autoget_vsim_supply = {
 static struct regulator_consumer_supply autoget_vaux2_supplies = {
 	.supply		= "hsusb1",
 };
+
 
 static struct gpio_led gpio_leds[];
 
@@ -821,6 +823,30 @@ static struct omap2_mcspi_device_config ads7846_mcspi_config = {
 	.single_channel	= 1,	/* 0: slave, 1: master */
 };
 
+#define SPI1_GPIO_SCK		171
+#define SPI1_GPIO_MOSI		172
+#define SPI1_GPIO_MISO		173
+#define SPI1_GPIO_CS0			174
+#define SPI1_GPIO_CS1			175
+#define SPI1_GPIO_CS2			176
+
+#if defined(CONFIG_SPI_GPIO) || defined(CONFIG_SPI_GPIO_MODULE)
+static struct spi_gpio_platform_data spi_gpio_info = {
+	.sck					= SPI1_GPIO_SCK,
+	.mosi				= SPI1_GPIO_MOSI,
+	.miso				= SPI1_GPIO_MISO,
+	.num_chipselect		= 4,
+};
+
+static struct platform_device agspi_gpio = {
+	.name	= "spi_gpio",
+	.id		= 1,
+	.dev	= {
+		.platform_data	= &spi_gpio_info,
+	},
+};
+#endif	/* CONFIG_SPI_GPIO */
+
 #include <media/v4l2-int-device.h>
 #if defined(CONFIG_VIDEO_EV76C570) || defined(CONFIG_VIDEO_EV76C570_MODULE)
 #include <media/ev76c570.h>
@@ -833,7 +859,8 @@ struct spi_board_info omap3autoget_spi_board_info[] = {
 		.bus_num		= 1,
 		.chip_select		= 0,
 		.max_speed_hz		= 1500000,
-		.controller_data	= &ads7846_mcspi_config,
+		.controller_data		= (void*)SPI1_GPIO_CS0,
+		//.controller_data	= &ads7846_mcspi_config,
 		.irq			= OMAP_GPIO_IRQ(OMAP3_AUTOGET_TS_GPIO),
 		.platform_data		= &ads7846_config,
 	},
@@ -848,18 +875,18 @@ struct spi_board_info omap3autoget_spi_board_info[] = {
 #endif
 #if defined(CONFIG_VIDEO_EV76C570) || defined(CONFIG_VIDEO_EV76C570_MODULE)
 	[2] = {
-		.modalias		= "ev76c570",
-		.bus_num		= 1,
+		.modalias			= "ev76c570",
+		.bus_num			= 1,
 		.chip_select		= 2,
-		.max_speed_hz	= 1500000,
-		.mode			= SPI_MODE_0,
+		.max_speed_hz	= 800000,
+		.controller_data		= (void*)SPI1_GPIO_CS2,
 		.platform_data 		= &autoget_ev76c570_platform_data,
 	},
 #endif
 #if defined(CONFIG_SPI_SPIDEV) || defined(CONFIG_SPI_SPIDEV_MODULE)
 	[3] = {
 		.modalias = "spidev",
-		.max_speed_hz = 500000,     /* max spi clock (SCK) speed in HZ */
+		.max_speed_hz = 800000,     /* max spi clock (SCK) speed in HZ */
 		.bus_num = 3,
 		.chip_select = 0,
 	},
@@ -896,6 +923,7 @@ static void __init omap3_autoget_init_irq(void)
 static struct platform_device *omap3_autoget_devices[] __initdata = {
 	&leds_gpio,
 	&keys_gpio,
+	&agspi_gpio,
 	&autoget_dss_device,
 	&omap3autoget_bklight_device,
 };

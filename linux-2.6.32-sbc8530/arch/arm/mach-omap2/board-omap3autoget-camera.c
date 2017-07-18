@@ -41,15 +41,15 @@ static int cam_inited;
 #define EV76C570_BIGGEST_FRAME_BYTE_SIZE	PAGE_ALIGN(1600 * 1200 * 2)
 
 static struct omap34xxcam_sensor_config ev76c570_hwc = {
-	.sensor_isp = 1,
-	.capture_mem = EV76C570_BIGGEST_FRAME_BYTE_SIZE * 2,
+	.sensor_isp = 0,
+	.capture_mem = EV76C570_BIGGEST_FRAME_BYTE_SIZE * 3,
 	.ival_default	= { 1, 15 },
 };
 
 static struct isp_interface_config ev76c570_if_config = {
 	.ccdc_par_ser		= ISP_PARLL,
 	.dataline_shift 	= 0x1,
-	.hsvs_syncdetect 	= ISPCTRL_SYNC_DETECT_VSFALL,
+	.hsvs_syncdetect 	= ISPCTRL_SYNC_DETECT_VSRISE,
 	.strobe 		= 0x0,
 	.prestrobe 		= 0x0,
 	.shutter 		= 0x0,
@@ -78,7 +78,7 @@ static int ev76c570_sensor_power_set(struct v4l2_int_device *s,
 	static enum v4l2_power previous_power = V4L2_POWER_OFF;
 
 	if (!cam_inited) {
-		printk(KERN_ERR "OV2656: Unable to control board GPIOs!\n");
+		printk(KERN_ERR "EV76C570: Unable to control board GPIOs!\n");
 		return -EFAULT;
 	}
 
@@ -87,6 +87,7 @@ static int ev76c570_sensor_power_set(struct v4l2_int_device *s,
 		isp_configure_interface(vdev->cam->isp, &ev76c570_if_config);
 
 		if (previous_power == V4L2_POWER_OFF) {
+			//printk("%s: power on.. \n", __func__);
 			/* turn on analog power */
 			twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
 					VAUX_1_8_V, TWL4030_VAUX4_DEDICATED);
@@ -95,14 +96,17 @@ static int ev76c570_sensor_power_set(struct v4l2_int_device *s,
 
 			gpio_direction_output(GPIO_CAM_TRIG, 0);
 			gpio_direction_output(GPIO_CAM_RSTN, 0);
-			mdelay(1);
+			mdelay(10);
 			gpio_direction_output(GPIO_CAM_RSTN, 1);
+			mdelay(50);
 		}
 		break;
 	case V4L2_POWER_OFF:
+		//printk("%s: power off.. \n", __func__);
 		/* Power Down Sequence */
 		twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
 				VAUX_DEV_GRP_NONE, TWL4030_VAUX4_DEV_GRP);
+		gpio_direction_output(GPIO_CAM_RSTN, 0);
 		break;
 	case V4L2_POWER_STANDBY:
 		break;
@@ -126,28 +130,26 @@ struct ev76c570_platform_data autoget_ev76c570_platform_data = {
 	.set_xclk	 = ev76c570_sensor_set_xclk,
 };
 
-#endif//CONFIG_VIDEO_EV76C570
+#endif	/* CONFIG_VIDEO_EV76C570 */
 
 void __init autoget_cam_init(void)
 {
 #if defined(CONFIG_VIDEO_EV76C570) || defined(CONFIG_VIDEO_EV76C570_MODULE)
 	cam_inited = 0;
 
-        if (gpio_request(GPIO_CAM_TRIG, "EV76C570 TRIG") < 0) {
-                printk("Can't get GPIO %d\n", GPIO_CAM_TRIG);
-                return;
-        }
+	if (gpio_request(GPIO_CAM_TRIG, "EV76C570 TRIG") < 0) {
+		printk("Can't get GPIO %d\n", GPIO_CAM_TRIG);
+		return;
+	}
 
-        if (gpio_request(GPIO_CAM_RSTN, "EV76C570 RSTN") < 0) {
-                printk("Can't get GPIO %d\n", GPIO_CAM_RSTN);
-                return;
-        }
+	if (gpio_request(GPIO_CAM_RSTN, "EV76C570 RSTN") < 0) {
+		printk("Can't get GPIO %d\n", GPIO_CAM_RSTN);
+		return;
+	}
 
-        gpio_direction_output(GPIO_CAM_TRIG, 0);
-        gpio_direction_output(GPIO_CAM_RSTN, 0);
-        mdelay(1);
-        gpio_direction_output(GPIO_CAM_RSTN, 1);
-        mdelay(1);
+	/* Hold RSTN low until camera power on */
+	gpio_direction_output(GPIO_CAM_TRIG, 0);
+	gpio_direction_output(GPIO_CAM_RSTN, 0);
 #endif
 	cam_inited = 1;
 }

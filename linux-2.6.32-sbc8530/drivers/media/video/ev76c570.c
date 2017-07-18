@@ -336,11 +336,11 @@ static int ev76c570_write_reg(struct spi_device *spi, u8 data_length,
 
 	/* register write */
 	if (data_length == EV76C570_8BIT) {
-		buffer[0] = (reg & 0x7f) | 0x80;	/* first bit = 1 */
+		buffer[0] = reg | 0x80;	/* first bit = 1 */
 		buffer[1] =  (u8) (val & 0xff);
 	} else {	/* 16Bit */
-		buffer[0] = (reg & 0x7f) | 0x80;	/* first bit = 1 */
-		buffer[1] = (u8) (val >> 8);;
+		buffer[0] = reg | 0x80;	/* first bit = 1 */
+		buffer[1] = (u8) (val >> 8);
 		buffer[2] = (u8) (val & 0xff);
 	}
 	wreg_xfer.len = 1 + data_length;
@@ -361,6 +361,7 @@ static int ev76c570_read_reg16(struct spi_device *spi, u8 reg, u16 *val)
 		.len		= 2,
 	};
 	u8	buffer[8];
+	int ret = 0;
 
 	spi_message_init(&msg);
 
@@ -371,10 +372,15 @@ static int ev76c570_read_reg16(struct spi_device *spi, u8 reg, u16 *val)
 	spi_message_add_tail(&addr_xfer, &msg);
 
 	val_xfer.tx_buf = NULL;
-	val_xfer.rx_buf = val;
+	val_xfer.rx_buf = buffer + 4;
 	spi_message_add_tail(&val_xfer, &msg);
 
-	return spi_sync(spi, &msg);
+	ret = spi_sync(spi, &msg);
+	printk("%s: read buff %02x %02x  \n", __func__, buffer[4], buffer[5]);
+	*val = (buffer[4] << 8) | buffer[5];
+
+	//return spi_sync(spi, &msg);
+	return ret;
 }
 #else
 static int ev76c570_read_reg16(struct spi_device *spi, u8 reg, u16 *val)
@@ -486,27 +492,32 @@ static int ev76c570_configure(struct v4l2_int_device *s)
 	struct spi_device *spidev = sensor->spi;
 	int err;
 
+	printk("Configure ev76c570 strean on .... \n");
+#if 0
 	/* common register initialization */
 	err = ev76c570_write_regs(spidev, initial_common_regs);
 	if (err)
 		return err;
+#endif
 
 	/* configure setup register and stream ON */
 	err = ev76c570_write_regs(spidev, initial_setup_regs);
+	printk("Configure ev76c570 strean on with err %d.... \n", err);
 
 	return err;
 }
 
 
 /**
- * mt9p012_detect - Detect if an mt9p012 is present, and if so which revision
+ * ev76c570_detect - Detect if an mt9p012 is present, and if so which revision
  * @client: pointer to the i2c client driver structure
  *
  * Detect if an mt9p012 is present, and if so which revision.
  */
 static int ev76c570_detect(struct spi_device *spidev)
 {
-	u16 chipid;
+	u16 chipid = 0;
+	int err;
 
 	if (!spidev)
 		return -ENODEV;
@@ -523,6 +534,15 @@ static int ev76c570_detect(struct spi_device *spidev)
 
 //		return -ENODEV;
 	}
+
+#if 1
+	/* common register initialization */
+	err = ev76c570_write_regs(spidev, initial_common_regs);
+	if (err) {
+		printk("## error write initial common regs \n");
+		return err;
+	}
+#endif
 	return 0;
 
 }
@@ -946,6 +966,7 @@ static int ioctl_s_power(struct v4l2_int_device *s, enum v4l2_power new_power)
 
 	switch (new_power) {
 	case V4L2_POWER_ON:
+		printk("%s: power on.. \n", __func__);
 		sensor->xclk_current = 24000000;	/* TODO: fix clk_ref */
 		rval = sensor->pdata->set_xclk(s, sensor->xclk_current);
 		if (rval == -EINVAL)
@@ -954,16 +975,19 @@ static int ioctl_s_power(struct v4l2_int_device *s, enum v4l2_power new_power)
 		if (rval)
 			break;
 
-		if (sensor->detected)
+		if (sensor->detected) {
 			ev76c570_configure(s);
-		else {
+			printk("%s: stream on.. \n", __func__);
+		} else {
 			rval = ioctl_dev_init(s);
 			if (rval)
 				goto err_on;
+			printk("%s: .. \n", __func__);
 		}
 		break;
 	case V4L2_POWER_OFF:
 err_on:
+		printk("%s: power off.. \n", __func__);
 		rval = sensor->pdata->power_set(s, V4L2_POWER_OFF);
 		sensor->pdata->set_xclk(s, 0);
 		break;
