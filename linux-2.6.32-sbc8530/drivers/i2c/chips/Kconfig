@@ -16,6 +16,14 @@ config SENSORS_TSL2550
 	  This driver can also be built as a module.  If so, the module
 	  will be called tsl2550.
 
+config SENSORS_TSL2x7x
+	tristate "TAOS TSL/TMD2x71 and TSL/TMD2x72 Family of light and proximity sensors"
+	depends on I2C
+	help
+	 Support for: tsl2571, tsl2671, tmd2671, tsl2771, tmd2771, tsl2572, tsl2672,
+	 tmd2672, tsl2772, tmd2772 devices.
+	 Provides direct access via sysfs.
+
 config VGA_CH7026
         tristate "VGA CH7026 CHIP"
         depends on I2C
