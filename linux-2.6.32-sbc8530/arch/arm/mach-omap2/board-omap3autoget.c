@@ -683,7 +683,7 @@ extern void autoget_cam_init(void);
 static struct i2c_board_info __initdata autoget_i2c2_boardinfo[] = {
 	/* light sensor: tmd2772x */
 	{
-		I2C_BOARD_INFO("tmd2772x", TMD2772X_I2C_ADDR),
+		I2C_BOARD_INFO("tmd2772", TMD2772X_I2C_ADDR),
 		//.platform_data = &sbc8530_ov2656_platform_data,
        },
        /* battary: bq27541 */
