@@ -859,8 +859,8 @@ struct spi_board_info omap3autoget_spi_board_info[] = {
 		.bus_num		= 1,
 		.chip_select		= 0,
 		.max_speed_hz		= 1500000,
-		.controller_data		= (void*)SPI1_GPIO_CS0,
-		//.controller_data	= &ads7846_mcspi_config,
+		//.controller_data		= (void*)SPI1_GPIO_CS0,
+		.controller_data	= &ads7846_mcspi_config,
 		.irq			= OMAP_GPIO_IRQ(OMAP3_AUTOGET_TS_GPIO),
 		.platform_data		= &ads7846_config,
 	},
@@ -879,7 +879,7 @@ struct spi_board_info omap3autoget_spi_board_info[] = {
 		.bus_num			= 1,
 		.chip_select		= 2,
 		.max_speed_hz	= 800000,
-		.controller_data		= (void*)SPI1_GPIO_CS2,
+		//.controller_data		= (void*)SPI1_GPIO_CS2,
 		.platform_data 		= &autoget_ev76c570_platform_data,
 	},
 #endif
@@ -923,7 +923,7 @@ static void __init omap3_autoget_init_irq(void)
 static struct platform_device *omap3_autoget_devices[] __initdata = {
 	&leds_gpio,
 	&keys_gpio,
-	&agspi_gpio,
+//	&agspi_gpio,
 	&autoget_dss_device,
 	&omap3autoget_bklight_device,
 };
