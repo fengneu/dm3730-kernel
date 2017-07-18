@@ -26,7 +26,7 @@
 #ifdef CONFIG_LCD_32inch
 #define USE_GPIO	1
 #else
-#define USE_GPIO	0
+#undef USE_GPIO
 #endif
 
 #ifdef USE_GPIO
@@ -378,7 +378,6 @@ static struct omap_dss_driver lg4573_driver = {
 	},
 };
 #ifdef USE_GPIO
-
 static int lg4573_spi_gpio_init(void)
 {
 	if (gpio_request(PANEL_PIN_CS, "panel cs") < 0)
