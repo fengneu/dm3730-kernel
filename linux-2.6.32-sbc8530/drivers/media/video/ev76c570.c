@@ -27,6 +27,14 @@
 #define EV76C570_DEF_GAIN	0x00
 #define EV76C570_GAIN_STEP   	0x1
 
+/* Exposure time values, for 57MHz CLK_CTRL & 0xC9 line_length,
+ * step is 21.89us
+ */
+#define EV76C570_DEF_MIN_EXPOSURE	0x000F	/* 15ms */
+#define EV76C570_DEF_MAX_EXPOSURE	0x03E8	/* 1000ms */
+#define EV76C570_DEF_EXPOSURE	    0x0028
+#define EV76C570_EXPOSURE_STEP      1
+
 
 /* capture 2 MP */
 #define EV76C570_IMAGE_WIDTH_MAX	1600
@@ -119,6 +127,15 @@ static struct ev76c570_reg set_analog_gain[] = {
 	{EV76C570_TOK_TERM, 0, 0},	/* End of List */
 };
 
+static struct ev76c570_reg set_exposure_time[] = {
+	{EV76C570_16BIT, 0x0E, 0x0000},		/* ROI1 */
+	/* updating, other ROIs */
+
+	{EV76C570_TOK_TERM, 0, 0},	/* End of List */
+};
+
+
+
 static struct ev76c570_reg initial_common_regs[] = {
 	{EV76C570_16BIT, 0x07, 0x0A06},
 
@@ -181,7 +198,7 @@ static struct ev76c570_reg initial_setup_regs[] = {
 	{EV76C570_16BIT, 0x0C, 0x0000},
 	{EV76C570_16BIT, 0x0D, 0x0000},
 	//{EV76C570_16BIT, 0x0E, 0x186A},
-	{EV76C570_16BIT, 0x0E, 0x024D},
+	{EV76C570_16BIT, 0x0E, 0x0720},
 	{EV76C570_16BIT, 0x0F, 0x0000},
 
 	{EV76C570_16BIT, 0x10, 0x0000},
@@ -453,6 +470,18 @@ static struct vcontrol {
 		},
 		.current_value = EV76C570_DEF_GAIN,
 	},
+	{
+		{
+			.id = V4L2_CID_EXPOSURE,
+			.type = V4L2_CTRL_TYPE_INTEGER,
+			.name = "Exposure",
+			.minimum = EV76C570_DEF_MIN_EXPOSURE,
+			.maximum = EV76C570_DEF_MAX_EXPOSURE,
+			.step = EV76C570_EXPOSURE_STEP,
+			.default_value = EV76C570_DEF_EXPOSURE,
+		},
+		.current_value = EV76C570_DEF_EXPOSURE,
+	}
 };
 
 /**
@@ -476,6 +505,88 @@ static int find_vctrl(int id)
 	return i;
 }
 
+
+/**
+ * ev76c570_set_gain - sets sensor analog gain per input value
+ * @gain: analog gain value to be set on device
+ * @s: pointer to standard V4L2 device structure
+ * @lvc: pointer to V4L2 analog gain entry in video_controls array
+ *
+ * If the requested analog gain is within the allowed limits, the HW
+ * is configured to use the new gain value, and the video_controls
+ * array is updated with the new current value.
+ * The function returns 0 upon success.  Otherwise an error code is
+ * returned.
+ */
+static int ev76c570_set_gain(u16 gain, struct v4l2_int_device *s,
+			   struct vcontrol *lvc)
+{
+	int err;
+	struct ev76c570_sensor *sensor = s->priv;
+	struct spi_device *spidev = sensor->spi;
+
+	if ((gain < EV76C570_MIN_GAIN) || (gain > EV76C570_MAX_GAIN)) {
+		dev_err(&spidev->dev, "Gain not within the legal range");
+		return -EINVAL;
+	}
+	set_analog_gain[0].val = (gain & 0x07) << 8;	/* Analog Gain */
+	err = ev76c570_write_regs(spidev, set_analog_gain);
+	if (err) {
+		dev_err(&spidev->dev, "Error setting gain.%d", err);
+		return err;
+	} else
+		lvc->current_value = gain;
+
+	return err;
+}
+
+/**
+ * ev76c570_set_exposure_time - sets exposure time per input value
+ * @exp_time: exposure time to be set on device
+ * @s: pointer to standard V4L2 device structure
+ * @lvc: pointer to V4L2 exposure entry in video_controls array
+ *
+ * If the requested exposure time is within the allowed limits, the HW
+ * is configured to use the new exposure time, and the video_controls
+ * array is updated with the new current value.
+ * The function returns 0 upon success.  Otherwise an error code is
+ * returned.
+ */
+static int ev76c570_set_exposure_time(u32 exp_time, struct v4l2_int_device *s,
+				    struct vcontrol *lvc)
+{
+	int err;
+	struct ev76c570_sensor *sensor = s->priv;
+	struct spi_device *spidev = sensor->spi;
+	u32 coarse_int_time = 0;
+
+	printk("%s: exp_time %d.. \n", __func__, exp_time);
+	if ((exp_time < EV76C570_DEF_MIN_EXPOSURE) ||
+			(exp_time > EV76C570_DEF_MAX_EXPOSURE)) {
+		dev_err(&spidev->dev, "Exposure time not within the "
+			"legal range.\n");
+		dev_err(&spidev->dev, "Min time %d us Max time %d us",
+			EV76C570_DEF_MIN_EXPOSURE, EV76C570_DEF_MAX_EXPOSURE);
+		return -EINVAL;
+	}
+
+	/* for line_length & clk_ctrl, 21.89us per step */
+	coarse_int_time = (exp_time * 1000) / 22;
+
+	set_exposure_time[0].val = coarse_int_time;	/* Analog Gain */
+	err = ev76c570_write_regs(spidev, set_exposure_time);
+	if (err) {
+		dev_err(&spidev->dev, "Error setting gain.%d", err);
+		return err;
+	} else
+		lvc->current_value = exp_time;
+
+	printk("%s: exp_time %d with 0x0E reg 0x%04x.. \n", __func__, exp_time, coarse_int_time);
+	return err;
+}
+
+
+
 /**
  * ev76c570_configure - Configure the ev76c570 for the specified image mode
  * @s: pointer to standard V4L2 device structure
@@ -490,19 +601,21 @@ static int ev76c570_configure(struct v4l2_int_device *s)
 {
 	struct ev76c570_sensor *sensor = s->priv;
 	struct spi_device *spidev = sensor->spi;
-	int err;
+	struct vcontrol *lvc;
+	int err = 0, i = 0;
 
 	printk("Configure ev76c570 strean on .... \n");
-#if 0
-	/* common register initialization */
-	err = ev76c570_write_regs(spidev, initial_common_regs);
-	if (err)
-		return err;
-#endif
 
 	/* configure setup register and stream ON */
 	err = ev76c570_write_regs(spidev, initial_setup_regs);
 	printk("Configure ev76c570 strean on with err %d.... \n", err);
+
+	/* update exposure time */
+	i = find_vctrl(V4L2_CID_EXPOSURE);
+	if (i >= 0)
+		lvc = &video_control[i];
+
+	err = ev76c570_set_exposure_time(lvc->current_value, s, lvc);
 
 	return err;
 }
@@ -547,40 +660,6 @@ static int ev76c570_detect(struct spi_device *spidev)
 
 }
 
-
-/**
- * ev76c570_set_gain - sets sensor analog gain per input value
- * @gain: analog gain value to be set on device
- * @s: pointer to standard V4L2 device structure
- * @lvc: pointer to V4L2 analog gain entry in video_controls array
- *
- * If the requested analog gain is within the allowed limits, the HW
- * is configured to use the new gain value, and the video_controls
- * array is updated with the new current value.
- * The function returns 0 upon success.  Otherwise an error code is
- * returned.
- */
-static int ev76c570_set_gain(u16 gain, struct v4l2_int_device *s,
-			   struct vcontrol *lvc)
-{
-	int err;
-	struct ev76c570_sensor *sensor = s->priv;
-	struct spi_device *spidev = sensor->spi;
-
-	if ((gain < EV76C570_MIN_GAIN) || (gain > EV76C570_MAX_GAIN)) {
-		dev_err(&spidev->dev, "Gain not within the legal range");
-		return -EINVAL;
-	}
-	set_analog_gain[0].val = (gain & 0x07) << 8;	/* Analog Gain */
-	err = ev76c570_write_regs(spidev, set_analog_gain);
-	if (err) {
-		dev_err(&spidev->dev, "Error setting gain.%d", err);
-		return err;
-	} else
-		lvc->current_value = gain;
-
-	return err;
-}
 
 /**
  * ioctl_queryctrl - V4L2 sensor interface handler for VIDIOC_QUERYCTRL ioctl
@@ -629,6 +708,9 @@ static int ioctl_g_ctrl(struct v4l2_int_device *s, struct v4l2_control *vc)
 	case V4L2_CID_GAIN:
 		vc->value = lvc->current_value;
 		break;
+	case V4L2_CID_EXPOSURE:
+		vc->value = lvc->current_value;
+		break;
 	}
 
 	return 0;
@@ -657,6 +739,9 @@ static int ioctl_s_ctrl(struct v4l2_int_device *s, struct v4l2_control *vc)
 	switch (vc->id) {
 	case V4L2_CID_GAIN:
 		retval = ev76c570_set_gain(vc->value, s, lvc);
+		break;
+	case V4L2_CID_EXPOSURE:
+		retval = ev76c570_set_exposure_time(vc->value, s, lvc);
 		break;
 	}
 
@@ -966,7 +1051,7 @@ static int ioctl_s_power(struct v4l2_int_device *s, enum v4l2_power new_power)
 
 	switch (new_power) {
 	case V4L2_POWER_ON:
-		printk("%s: power on.. \n", __func__);
+		printk("%s-%d: power on.. \n", __func__, __LINE__);
 		sensor->xclk_current = 24000000;	/* TODO: fix clk_ref */
 		rval = sensor->pdata->set_xclk(s, sensor->xclk_current);
 		if (rval == -EINVAL)
@@ -977,12 +1062,12 @@ static int ioctl_s_power(struct v4l2_int_device *s, enum v4l2_power new_power)
 
 		if (sensor->detected) {
 			ev76c570_configure(s);
-			printk("%s: stream on.. \n", __func__);
+			printk("%s-%d: stream on.. \n", __func__, __LINE__);
 		} else {
 			rval = ioctl_dev_init(s);
 			if (rval)
 				goto err_on;
-			printk("%s: .. \n", __func__);
+			printk("%s-%d: .. \n", __func__, __LINE__);
 		}
 		break;
 	case V4L2_POWER_OFF:
