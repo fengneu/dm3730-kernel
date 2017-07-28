@@ -30,11 +30,10 @@ static int moto_reset;
 #define HWC_IOW_MOTORST 	_IOW('A', 1, int)
 
 /* gpio pins */
-#define GPIO_IN_FPESW		141		/* Frontend photoelectricity switch */
-#define GPIO_IN_BPESW		140		/* Backend photoelectricity switch */
-#define GPIO_IN_DSSW		72		/* RGB led & LCD display switch */
+#define GPIO_IN_FPESW		73		/* Frontend photoelectricity switch */
+#define GPIO_IN_BPESW		74		/* Backend photoelectricity switch */
+#define GPIO_IN_DSSW		113		/* RGB led & LCD display switch */
 #define GPIO_OUT_MOTORST	133		/* moto reset */
-
 
 static ssize_t autoget_hwctl_read(struct file *filp, char *buf,size_t count,loff_t *f_ops)
 {
@@ -52,7 +51,7 @@ static int autoget_hwctl_ioctl(struct inode * inode, struct file * file, unsigne
 	u32	tmp;
 	int	retval = 0;
 	u8	val = 0;
-	
+
 	switch (cmd) {
 	case HWC_IOR_FEPE:
 		val = gpio_get_value(GPIO_IN_FPESW);
@@ -112,7 +111,7 @@ static ssize_t moto_reset_store(struct device *dev, struct device_attribute *att
 
 struct file_operations autoget_hwctl_fops = {
 	.read		= autoget_hwctl_read,
-	.write		= autoget_hwctl_write,	
+	.write		= autoget_hwctl_write,
 	.ioctl		= autoget_hwctl_ioctl,
 	.open		= autoget_hwctl_open,
 	.release	= autoget_hwctl_close,
@@ -120,7 +119,7 @@ struct file_operations autoget_hwctl_fops = {
 
 static struct miscdevice autoget_hwctl_dev = {
 	.minor         = MISC_DYNAMIC_MINOR,
-	.name         = "autoget_hwctl",                
+	.name         = "autoget_hwctl",
 	.fops         = &autoget_hwctl_fops,
 };
 
@@ -148,7 +147,7 @@ static int autoget_gpio_init(void)
 	}
 	gpio_direction_input(GPIO_IN_FPESW);
 
-        	ret = gpio_request(GPIO_IN_BPESW, "fepe switch");
+	ret = gpio_request(GPIO_IN_BPESW, "fepe switch");
 	if (ret < 0) {
 		printk(KERN_ERR "Failed to request GPIO %d for fepe switch\n",
 				GPIO_IN_BPESW);
@@ -157,7 +156,7 @@ static int autoget_gpio_init(void)
 	gpio_direction_input(GPIO_IN_BPESW);
 
 	/* rgb-led and lcd switch */
-        	ret = gpio_request(GPIO_IN_DSSW, "fepe switch");
+	ret = gpio_request(GPIO_IN_DSSW, "fepe switch");
 	if (ret < 0) {
 		printk(KERN_ERR "Failed to request GPIO %d for fepe switch\n",
 				GPIO_IN_DSSW);
