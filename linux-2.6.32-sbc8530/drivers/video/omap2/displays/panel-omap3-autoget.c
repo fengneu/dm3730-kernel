@@ -30,9 +30,9 @@
 #endif
 
 #ifdef USE_GPIO
-#define PANEL_PIN_CS		175	
-#define PANEL_PIN_SCL	171
-#define PANEL_PIN_SDA	172
+#define PANEL_PIN_CS		18
+#define PANEL_PIN_SCL		20
+#define PANEL_PIN_SDA		13
 #endif	/* USE_GPIO */
 
 static struct spi_device	*spidev;
@@ -84,78 +84,41 @@ static int lg4573_write_reg(u8 data, int is_cmd)
 {
 	int i = 0;
 
-	gpio_direction_output(PANEL_PIN_CS, 1);
-	gpio_direction_output(PANEL_PIN_SCL, 1);
-	gpio_direction_output(PANEL_PIN_CS, 0);
+	gpio_set_value(PANEL_PIN_CS, 1);
+	gpio_set_value(PANEL_PIN_SCL, 1);
+	gpio_set_value(PANEL_PIN_CS, 0);
 
 	if (is_cmd)
-		gpio_direction_output(PANEL_PIN_SDA, 0);	/* Command */
+		gpio_set_value(PANEL_PIN_SDA, 0);	/* Command */
 	else
-		gpio_direction_output(PANEL_PIN_SDA, 1);	/* Data */
+		gpio_set_value(PANEL_PIN_SDA, 1);	/* Data */
 
 	udelay(S_DELAY_US);
 
-	gpio_direction_output(PANEL_PIN_SCL, 0);
+	gpio_set_value(PANEL_PIN_SCL, 0);
 	udelay(S_DELAY_US);
-	gpio_direction_output(PANEL_PIN_SCL, 1);
+	gpio_set_value(PANEL_PIN_SCL, 1);
 
 	for (i = 0; i < 8; i++) {
 		if(data & 0x80)
-			gpio_direction_output(PANEL_PIN_SDA, 1);
+			gpio_set_value(PANEL_PIN_SDA, 1);
 		else
-			gpio_direction_output(PANEL_PIN_SDA, 0);
+			gpio_set_value(PANEL_PIN_SDA, 0);
 
-		gpio_direction_output(PANEL_PIN_SCL, 0);
+		gpio_set_value(PANEL_PIN_SCL, 0);
 		udelay(S_DELAY_US);
-		gpio_direction_output(PANEL_PIN_SCL, 1);
+		gpio_set_value(PANEL_PIN_SCL, 1);
 		udelay(S_DELAY_US);
 		data <<= 1;
 	}
-	gpio_direction_output(PANEL_PIN_SDA, 1);
-	gpio_direction_output(PANEL_PIN_SCL, 1);
-	gpio_direction_output(PANEL_PIN_CS, 1);
+	gpio_set_value(PANEL_PIN_SDA, 1);
+	gpio_set_value(PANEL_PIN_SCL, 1);
+	gpio_set_value(PANEL_PIN_CS, 1);
 
 	return 0;
 }
-#else	/* USE_GPIO */
-#if 0
-static int lg4573_write_reg(u8 reg, u8 *regval, int size)
-{
-	struct spi_message msg;
-	struct spi_transfer index_xfer = {
-		.len		= 2,
-		.cs_change	= 1,
-	};
-	struct spi_transfer value_xfer = {
-		//.len		= 3,
-	};
-	u8	ixbuffer[4];
-	u8	regbuf[16];
-	int i = 0;
 
-	spi_message_init(&msg);
-
-	/* register index */
-	ixbuffer[0] = 0x70;
-	ixbuffer[1] = reg;
-	index_xfer.tx_buf = ixbuffer;
-	spi_message_add_tail(&index_xfer, &msg);
-
-	/* register value */
-	if (regval != NULL) {
-		regbuf[0] = 0x72;
-		for (i=1; i<size+1; i++) {
-			regbuf[i] = *(regval++);
-			//printk("\t 0x%02x ", regbuf[i]);
-		}
-
-		value_xfer.tx_buf = regbuf;
-		value_xfer.len = size+1;
-		spi_message_add_tail(&value_xfer, &msg);
-	}
-	return spi_sync(spidev, &msg);
-}
-#else
+#else	/* !USE_GPIO */
 static int lg4573_write_reg(u8 val, int is_command)
 {
 	struct spi_message msg;
@@ -183,8 +146,6 @@ static int lg4573_write_reg(u8 val, int is_command)
 
 	return spi_sync(spidev, &msg);
 }
-
-#endif
 #endif	/* USE_GPIO */
 
 

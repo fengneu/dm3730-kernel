@@ -705,9 +705,9 @@ static int __init omap3_autoget_i2c_init(void)
 	return 0;
 }
 
-#define GPIO_LEDR	139
-#define GPIO_LEDG	138
-#define GPIO_LEDB	137
+#define GPIO_LEDR	70
+#define GPIO_LEDG	71
+#define GPIO_LEDB	72
 
 static struct gpio_led gpio_leds[] = {
 	{
@@ -754,19 +754,19 @@ static struct platform_device leds_gpio = {
 static struct gpio_keys_button gpio_buttons[] = {
         {
                 .code                   = BTN_FORWARD,
-                .gpio                   = 73,
+                .gpio                   = 14,
                 .desc                   = "forward",
                 .active_low             = true,
         },
         {
                 .code                   = BTN_BACK,
-                .gpio                   = 74,
+                .gpio                   = 15,
                 .desc                   = "back",
                 .active_low             = true,
         },
         {
                 .code                   = BTN_TASK,
-                .gpio                   = 71,
+                .gpio                   = 42,
                 .desc                   = "measure",
                 .active_low             = true,
         },
@@ -978,6 +978,7 @@ static struct ehci_hcd_omap_platform_data ehci_pdata __initdata = {
 	.reset_gpio_port[2]  = -EINVAL
 };
 
+#if 0	/* NO USE */
 #define USB_HUB_RESET	13
 static void __init usb_hub_init(void)
 {
@@ -990,6 +991,8 @@ static void __init usb_hub_init(void)
 	udelay(10);
 	gpio_direction_output(USB_HUB_RESET, 0);	
 }
+late_initcall(usb_hub_init);
+#endif
 
 #ifdef CONFIG_OMAP_MUX
 static struct omap_board_mux board_mux[] __initdata = {
@@ -1038,5 +1041,3 @@ MACHINE_START(OMAP3_AUTOGET, "OMAP3 AutoGet Board")
 	.init_machine	= omap3_autoget_init,
 	.timer		= &omap_timer,
 MACHINE_END
-
-late_initcall(usb_hub_init);
