@@ -43,7 +43,7 @@ static int cam_inited;
 static struct omap34xxcam_sensor_config ev76c570_hwc = {
 	.sensor_isp = 0,
 	.capture_mem = EV76C570_BIGGEST_FRAME_BYTE_SIZE * 3,
-	.ival_default	= { 1, 15 },
+	.ival_default	= { 1, 25 },
 };
 
 static struct isp_interface_config ev76c570_if_config = {

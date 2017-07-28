@@ -1008,7 +1008,7 @@ static int ioctl_enum_framesizes(struct v4l2_int_device *s,
 }
 
 const struct v4l2_fract ev76c570_frameintervals[] = {
-	{  .numerator = 1, .denominator = 30 },	/* TODO: ? */
+	{  .numerator = 1, .denominator = 25 },	/* TODO: ? */
 };
 
 static int ioctl_enum_frameintervals(struct v4l2_int_device *s,
