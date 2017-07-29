@@ -3271,7 +3271,7 @@ static int __init tty_init(void)
 #endif
 #ifdef CONFIG_BT_WL1271
 	/* Initialize Bluetooth- WL1271chip connected to UART */
-	bt_init_power();
+	//bt_init_power();
 #endif
 
 	return 0;

@@ -144,27 +144,25 @@ static void __init omap3_autoget_display_init(void)
 {
 #if 0
         int ret;
-
-
         ret = gpio_request(DVI_UP_GPIO, "dvi up");
         if (ret < 0) {
                 printk(KERN_ERR "Failed to request GPIO %d for dvi up\n",
                                 DVI_UP_GPIO);
         }
 #endif
-        return;
+	return;
 }
 
 
 static int omap3_autoget_enable_lcd(struct omap_dss_device *dssdev)
 {
-        char value;
+	char value;
 
 	twl_i2c_read_u8(TWL4030_MODULE_LED, &value, 0x0);
-        twl_i2c_write_u8(TWL4030_MODULE_LED, value & ~(0x1), 0x0);
+	twl_i2c_write_u8(TWL4030_MODULE_LED, value & ~(0x1), 0x0);
 
-        lcd_enabled = 1;
-        return 0;
+	lcd_enabled = 1;
+	return 0;
 }
 
 static void omap3_autoget_disable_lcd(struct omap_dss_device *dssdev)
@@ -182,7 +180,6 @@ static struct omap_dss_device autoget_lcd_device = {
 	.driver_name            = "lg4573_panel",
 	.type                   = OMAP_DISPLAY_TYPE_DPI,
 	.phy.dpi.data_lines     = 24,
-	//.panel.recommended_bpp  = 16,
 	.platform_enable        = omap3_autoget_enable_lcd,
 	.platform_disable       = omap3_autoget_disable_lcd,
 };
@@ -826,15 +823,15 @@ static struct omap2_mcspi_device_config ads7846_mcspi_config = {
 #define SPI1_GPIO_SCK		171
 #define SPI1_GPIO_MOSI		172
 #define SPI1_GPIO_MISO		173
-#define SPI1_GPIO_CS0			174
-#define SPI1_GPIO_CS1			175
-#define SPI1_GPIO_CS2			176
+#define SPI1_GPIO_CS0		174
+#define SPI1_GPIO_CS1		175
+#define SPI1_GPIO_CS2		176
 
 #if defined(CONFIG_SPI_GPIO) || defined(CONFIG_SPI_GPIO_MODULE)
 static struct spi_gpio_platform_data spi_gpio_info = {
-	.sck					= SPI1_GPIO_SCK,
-	.mosi				= SPI1_GPIO_MOSI,
-	.miso				= SPI1_GPIO_MISO,
+	.sck			= SPI1_GPIO_SCK,
+	.mosi			= SPI1_GPIO_MOSI,
+	.miso			= SPI1_GPIO_MISO,
 	.num_chipselect		= 4,
 };
 
@@ -864,20 +861,11 @@ struct spi_board_info omap3autoget_spi_board_info[] = {
 		.irq			= OMAP_GPIO_IRQ(OMAP3_AUTOGET_TS_GPIO),
 		.platform_data		= &ads7846_config,
 	},
-#if 0	/* Mask it for temporary */
-	[1] = {
-		.modalias		= "lg4573_panel-spi",
-		.bus_num		= 1,
-		.chip_select		= 1,
-		.max_speed_hz	= 500000,
-		.mode			= SPI_MODE_3,
-	},
-#endif
 #if defined(CONFIG_VIDEO_EV76C570) || defined(CONFIG_VIDEO_EV76C570_MODULE)
 	[2] = {
-		.modalias			= "ev76c570",
-		.bus_num			= 1,
-		.chip_select		= 2,
+		.modalias	= "ev76c570",
+		.bus_num	= 1,
+		.chip_select	= 2,
 		.max_speed_hz	= 800000,
 		//.controller_data		= (void*)SPI1_GPIO_CS2,
 		.platform_data 		= &autoget_ev76c570_platform_data,
