@@ -675,32 +675,43 @@ static struct i2c_board_info __initdata autoget_i2c1_boardinfo[] = {
 extern void autoget_cam_init(void);
 
 #define TMD2772X_I2C_ADDR	0x39
-#define BQ27541_I2C_ADDR		0x55
+#define BQ27541_I2C_ADDR	0x55
+#define TMD2772_IRQ_GPIO	41
 
 static struct i2c_board_info __initdata autoget_i2c2_boardinfo[] = {
 	/* light sensor: tmd2772x */
 	{
 		I2C_BOARD_INFO("tmd2772", TMD2772X_I2C_ADDR),
-		//.platform_data = &sbc8530_ov2656_platform_data,
-       },
-       /* battary: bq27541 */
-       {
+		.irq = OMAP_GPIO_IRQ(TMD2772_IRQ_GPIO),
+		.platform_data = NULL,
+	},
+	/* battary: bq27541 */
+	{
 		I2C_BOARD_INFO("bq27541", BQ27541_I2C_ADDR),
 		//.platform_data = &sbc8530_ov2656_platform_data,
-       },
+	},
 };
 
 static int __init omap3_autoget_i2c_init(void)
 {
 	omap_register_i2c_bus(1, 2600, autoget_i2c1_boardinfo,
 			ARRAY_SIZE(autoget_i2c1_boardinfo));
-	omap_register_i2c_bus(2, 400, autoget_i2c2_boardinfo,
+	omap_register_i2c_bus(2, 100, autoget_i2c2_boardinfo,
                                 ARRAY_SIZE(autoget_i2c2_boardinfo));
 	/* Bus 3 is attached to the DVI port where devices like the pico DLP
 	 * projector don't work reliably with 400kHz */
 	omap_register_i2c_bus(3, 100, NULL, 0);
 	return 0;
 }
+
+static void i2cdev_init_gpio_irq(void)
+{
+	if (gpio_request(TMD2772_IRQ_GPIO, "tmd2772 irq") < 0)
+		printk(KERN_ERR "can't get tmd2772 irq GPIO\n");
+
+	gpio_direction_input(TMD2772_IRQ_GPIO);
+}
+
 
 #define GPIO_LEDR	70
 #define GPIO_LEDG	71
@@ -721,17 +732,17 @@ static struct gpio_led gpio_leds[] = {
 	{
 		.name                = "red_led",
 		.gpio                  = GPIO_LEDR,
-		.active_low	= true,
+		.active_low	= false,
 	},
 	{
 		.name		= "green_led",
 		.gpio			= GPIO_LEDG,
-		.active_low	= true,
+		.active_low	= false,
 	},
 	{
 		.name		= "blue_led",
 		.gpio			= GPIO_LEDB,
-		.active_low	= true,
+		.active_low	= false,
 	},
 };
 
@@ -906,6 +917,7 @@ static void __init omap3_autoget_init_irq(void)
 #endif
 	omap_gpio_init();
 	ads7846_dev_init();
+	i2cdev_init_gpio_irq();
 }
 
 static struct platform_device *omap3_autoget_devices[] __initdata = {

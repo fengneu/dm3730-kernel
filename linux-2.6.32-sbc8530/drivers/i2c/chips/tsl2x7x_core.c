@@ -1482,7 +1482,7 @@ static int tsl2x7x_probe(struct i2c_client *clientp,
 	chip->id = id->driver_data;
 
 	ret = request_threaded_irq(clientp->irq, NULL, &tsl2x7x_event_handler,
-					IRQF_TRIGGER_RISING | IRQF_ONESHOT,	"TSL2X7X_event", chip);
+			IRQF_TRIGGER_RISING | IRQF_ONESHOT, "TSL2X7X_event", chip);
 	if (ret) {
 		dev_err(&clientp->dev,
 			"%s: irq request failed", __func__);
@@ -1501,6 +1501,7 @@ static int tsl2x7x_probe(struct i2c_client *clientp,
 		goto exit_kfree;
 
 	dev_info(&clientp->dev, "%s Light sensor found.\n", id->name);
+	return 0;
 
 exit_kfree:
 	kfree(chip);
