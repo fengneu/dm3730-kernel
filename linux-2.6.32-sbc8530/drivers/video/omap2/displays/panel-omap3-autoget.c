@@ -23,17 +23,13 @@
 
 #include <plat/display.h>
 
-#ifdef CONFIG_LCD_32inch
-#define USE_GPIO	1
-#else
-#undef USE_GPIO
-#endif
-
-#ifdef USE_GPIO
+/* SPI GPIO defines */
 #define PANEL_PIN_CS		18
 #define PANEL_PIN_SCL		20
 #define PANEL_PIN_SDA		13
-#endif	/* USE_GPIO */
+
+#define S_DELAY_US	10
+#define SETUP_US	1
 
 static struct spi_device	*spidev;
 
@@ -69,6 +65,7 @@ static int lg4573_panel_probe(struct omap_dss_device *dssdev)
 {
 	dssdev->panel.config = OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
 		OMAP_DSS_LCD_IHS;
+	//dssdev->panel.config = OMAP_DSS_LCD_TFT;
 	dssdev->panel.timings = lg4573_timings;
 
 	return 0;
@@ -77,8 +74,6 @@ static int lg4573_panel_probe(struct omap_dss_device *dssdev)
 static void lg4573_panel_remove(struct omap_dss_device *dssdev)
 {
 }
-#ifdef USE_GPIO
-#define S_DELAY_US	20
 
 static int lg4573_write_reg(u8 data, int is_cmd)
 {
@@ -98,6 +93,7 @@ static int lg4573_write_reg(u8 data, int is_cmd)
 	gpio_set_value(PANEL_PIN_SCL, 0);
 	udelay(S_DELAY_US);
 	gpio_set_value(PANEL_PIN_SCL, 1);
+	udelay(S_DELAY_US);
 
 	for (i = 0; i < 8; i++) {
 		if(data & 0x80)
@@ -105,6 +101,7 @@ static int lg4573_write_reg(u8 data, int is_cmd)
 		else
 			gpio_set_value(PANEL_PIN_SDA, 0);
 
+		udelay(S_DELAY_US);
 		gpio_set_value(PANEL_PIN_SCL, 0);
 		udelay(S_DELAY_US);
 		gpio_set_value(PANEL_PIN_SCL, 1);
@@ -114,39 +111,10 @@ static int lg4573_write_reg(u8 data, int is_cmd)
 	gpio_set_value(PANEL_PIN_SDA, 1);
 	gpio_set_value(PANEL_PIN_SCL, 1);
 	gpio_set_value(PANEL_PIN_CS, 1);
+	udelay(S_DELAY_US);
 
 	return 0;
 }
-
-#else	/* !USE_GPIO */
-static int lg4573_write_reg(u8 val, int is_command)
-{
-	struct spi_message msg;
-	struct spi_transfer xfer = {
-		.len		= 1,
-		//.cs_change = 1,
-		//.delay_usecs = 10,	/* delay 10ns */
-		.speed_hz = 500000,	/* 500KHz, MUSTBE! just for reconfig chnl */
-	};
-	u8	buffer[4];
-
-	spi_message_init(&msg);
-
-	/* register index */
-	buffer[0] = val;
-	xfer.tx_buf = buffer;
-	if (is_command) {
-		/* REVISIT: 	notify omap2 mcspi dual for SBPOL 0 */
-		xfer.bits_per_word = 0;
-	} else {
-		/* sbpol =1, notify omap2 mcspi dual for SBPOL 1 */
-		xfer.bits_per_word = 8;
-	}
-	spi_message_add_tail(&xfer, &msg);
-
-	return spi_sync(spidev, &msg);
-}
-#endif	/* USE_GPIO */
 
 
 static int lg4573_panel_enable(struct omap_dss_device *dssdev)
@@ -163,6 +131,7 @@ static int lg4573_panel_enable(struct omap_dss_device *dssdev)
 
 	if (dssdev->platform_enable)
 		r = dssdev->platform_enable(dssdev);
+	msleep(50);
 
 	/* Panel init */
 	lg4573_write_reg(0x20, 1);	// 
@@ -307,7 +276,6 @@ static void lg4573_panel_disable(struct omap_dss_device *dssdev)
 		dssdev->platform_disable(dssdev);
 
 	/* wait at least 5 vsyncs after disabling the LCD */
-
 	msleep(100);
 }
 
@@ -330,6 +298,7 @@ static struct omap_dss_driver lg4573_driver = {
 
 	.enable		= lg4573_panel_enable,
 	.disable	= lg4573_panel_disable,
+
 	.suspend	= lg4573_panel_suspend,
 	.resume		= lg4573_panel_resume,
 
@@ -338,7 +307,7 @@ static struct omap_dss_driver lg4573_driver = {
 		.owner  = THIS_MODULE,
 	},
 };
-#ifdef USE_GPIO
+
 static int lg4573_spi_gpio_init(void)
 {
 	if (gpio_request(PANEL_PIN_CS, "panel cs") < 0)
@@ -352,7 +321,7 @@ static int lg4573_spi_gpio_init(void)
 	
 	gpio_direction_output(PANEL_PIN_CS, 1);
 	gpio_direction_output(PANEL_PIN_SCL, 1);
-	gpio_direction_output(PANEL_PIN_SDA, 0);
+	gpio_direction_output(PANEL_PIN_SDA, 1);
 
 	return 0;
 }
@@ -381,48 +350,6 @@ static void __exit lg4573_panel_drv_exit(void)
 	lg4573_spi_gpio_free();
 	omap_dss_unregister_driver(&lg4573_driver);
 }
-
-#else
-static int __devinit lg4573_panel_spi_probe(struct spi_device *spi)
-{
-	spidev = spi;
-	return 0;
-}
-
-static int __devexit lg4573_panel_spi_remove(struct spi_device *spi)
-{
-	return 0;
-}
-
-static struct spi_driver lg4573_spi_driver = {
-	.driver		= {
-		.name	= "lg4573_panel-spi",
-		.owner	= THIS_MODULE,
-	},
-	.probe		= lg4573_panel_spi_probe,
-	.remove		= __devexit_p (lg4573_panel_spi_remove),
-};
-
-static int __init lg4573_panel_drv_init(void)
-{
-	int ret;
-	ret = spi_register_driver(&lg4573_spi_driver);
-	if (ret != 0)
-		pr_err("lg4573: Unable to register SPI driver: %d\n", ret);
-
-	ret = omap_dss_register_driver(&lg4573_driver);
-	if (ret != 0)
-		pr_err("lg4573: Unable to register panel driver: %d\n", ret);
-
-	return ret;
-}
-
-static void __exit lg4573_panel_drv_exit(void)
-{
-	spi_unregister_driver(&lg4573_spi_driver);
-	omap_dss_unregister_driver(&lg4573_driver);
-}
-#endif	/* USE_GPIO */
 
 module_init(lg4573_panel_drv_init);
 module_exit(lg4573_panel_drv_exit);
