@@ -1081,6 +1081,33 @@ static ssize_t tsl2x7x_als_cal_target_store(struct device *dev,
 	return len;
 }
 
+
+static ssize_t tsl2x7x_als_curlux_show(struct device *dev,
+					   struct device_attribute *attr,
+					   char *buf)
+{
+	struct tsl2X7X_chip *chip = i2c_get_clientdata(to_i2c_client(dev));
+	int lux_val = 0;
+
+	lux_val = tsl2x7x_get_lux(chip);
+
+	return snprintf(buf, PAGE_SIZE, "%d\n", lux_val);
+}
+
+
+static ssize_t tsl2x7x_prox_show(struct device *dev,
+					   struct device_attribute *attr,
+					   char *buf)
+{
+	struct tsl2X7X_chip *chip = i2c_get_clientdata(to_i2c_client(dev));
+	int prox_val = 0;
+
+	prox_val = tsl2x7x_get_prox(chip);
+
+	return snprintf(buf, PAGE_SIZE, "%d\n", prox_val);
+}
+
+
 /* persistence settings */
 static ssize_t tsl2x7x_als_persistence_show(struct device *dev,
 					    struct device_attribute *attr,
@@ -1292,6 +1319,12 @@ static DEVICE_ATTR(in_illuminance0_integration_time_available, S_IRUGO,
 static DEVICE_ATTR(in_illuminance0_target_input, S_IRUGO | S_IWUSR,
 		tsl2x7x_als_cal_target_show, tsl2x7x_als_cal_target_store);
 
+static DEVICE_ATTR(in_illuminance0, S_IRUGO,
+		tsl2x7x_als_curlux_show, NULL);
+
+static DEVICE_ATTR(in_proximity0, S_IRUGO,
+		tsl2x7x_prox_show, NULL);
+
 static DEVICE_ATTR(in_illuminance0_calibrate, S_IWUSR, NULL,
 		tsl2x7x_do_calibrate);
 
@@ -1401,12 +1434,14 @@ static struct attribute *tsl2x7x_PRX2_device_attrs[] = {
 
 static struct attribute *tsl2x7x_ALSPRX2_device_attrs[] = {
 	&dev_attr_power_state.attr,
+	&dev_attr_in_illuminance0.attr,
 	&dev_attr_in_illuminance0_calibscale_available.attr,
 	&dev_attr_in_illuminance0_integration_time.attr,
 	&dev_attr_in_illuminance0_integration_time_available.attr,
 	&dev_attr_in_illuminance0_target_input.attr,
 	&dev_attr_in_illuminance0_calibrate.attr,
 	&dev_attr_in_illuminance0_lux_table.attr,
+	&dev_attr_in_proximity0.attr,
 	&dev_attr_in_proximity0_calibrate.attr,
 	&dev_attr_in_proximity0_calibscale_available.attr,
 	&dev_attr_in_intensity0_thresh_period.attr,
@@ -1482,7 +1517,7 @@ static int tsl2x7x_probe(struct i2c_client *clientp,
 	chip->id = id->driver_data;
 
 	ret = request_threaded_irq(clientp->irq, NULL, &tsl2x7x_event_handler,
-			IRQF_TRIGGER_RISING | IRQF_ONESHOT, "TSL2X7X_event", chip);
+			IRQF_TRIGGER_FALLING | IRQF_ONESHOT, "TSL2X7X_event", chip);
 	if (ret) {
 		dev_err(&clientp->dev,
 			"%s: irq request failed", __func__);
