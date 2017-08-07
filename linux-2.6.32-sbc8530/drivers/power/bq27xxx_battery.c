@@ -701,11 +701,13 @@ void bq27xxx_battery_update(struct bq27xxx_device_info *di)
 	struct bq27xxx_reg_cache cache = {0, };
 	bool has_ci_flag = di->chip == BQ27000 || di->chip == BQ27010;
 	bool has_singe_flag = di->chip == BQ27000 || di->chip == BQ27010;
+	printk("%s(%d): .. \n", __func__, __LINE__);
 
 	cache.flags = bq27xxx_read(di, BQ27XXX_REG_FLAGS, has_singe_flag);
 	if ((cache.flags & 0xff) == 0xff)
 		cache.flags = -1; /* read error */
 	if (cache.flags >= 0) {
+		printk("%s(%d): .. \n", __func__, __LINE__);
 		cache.temperature = bq27xxx_battery_read_temperature(di);
 		if (has_ci_flag && (cache.flags & BQ27000_FLAG_CI)) {
 			dev_info(di->dev, "battery is not calibrated! ignoring capacity values\n");
@@ -717,6 +719,7 @@ void bq27xxx_battery_update(struct bq27xxx_device_info *di)
 			cache.charge_full = -ENODATA;
 			cache.health = -ENODATA;
 		} else {
+		printk("%s(%d): .. \n", __func__, __LINE__);
 			if (di->regs[BQ27XXX_REG_TTE] != INVALID_REG_ADDR)
 				cache.time_to_empty = bq27xxx_battery_read_time(di, BQ27XXX_REG_TTE);
 			if (di->regs[BQ27XXX_REG_TTECP] != INVALID_REG_ADDR)
@@ -738,6 +741,7 @@ void bq27xxx_battery_update(struct bq27xxx_device_info *di)
 		if (di->charge_design_full <= 0)
 			di->charge_design_full = bq27xxx_battery_read_dcap(di);
 	}
+	printk("%s(%d): cache.flags %d \n", __func__, __LINE__, cache.flags);
 
 	if (di->cache.capacity != cache.capacity)
 		power_supply_changed(&di->bat);
@@ -1060,7 +1064,7 @@ static int bq27xxx_battery_i2c_probe(struct i2c_client *client,
 	name = kasprintf(GFP_KERNEL, "%s-%d", id->name, num);
 	if (!name)
 		goto err_mem;
-
+	printk("!!!@@@ %s-%d: %s ...\n", __func__, __LINE__, name);
 	di = kzalloc(sizeof(*di), GFP_KERNEL);
 	if (!di)
 		goto err_mem;
@@ -1082,6 +1086,8 @@ static int bq27xxx_battery_i2c_probe(struct i2c_client *client,
 		dev_err(&client->dev, "failed to register battery\n");
 		goto err_failed;
 	}
+	/* Check ChipID */
+	//ret = bq27xxx_read(di, );
 
 	dev_info(&client->dev, "support ver. %s enabled\n", DRIVER_VERSION);
 
