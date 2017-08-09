@@ -20,20 +20,21 @@
 #include <asm/atomic.h>
 
 
-static int moto_reset;
-
 /* ioctl cmd */
 #define HWC_IOR_FEPE 	_IOR('A', 1, int)
 #define HWC_IOR_BEPE 	_IOR('A', 2, int)
 #define HWC_IOR_DSSW 	_IOR('A', 3, int)
 
 #define HWC_IOW_MOTORST 	_IOW('A', 1, int)
+#define HWC_IOW_MCUNOTIFY 	_IOW('A', 2, int)
 
 /* gpio pins */
 #define GPIO_IN_FPESW		73		/* Frontend photoelectricity switch */
 #define GPIO_IN_BPESW		74		/* Backend photoelectricity switch */
 #define GPIO_IN_DSSW		113		/* RGB led & LCD display switch */
+
 #define GPIO_OUT_MOTORST	133		/* moto reset */
+#define GPIO_OUT_MCUNOTIFY	161		/* moto reset */
 
 static ssize_t autoget_hwctl_read(struct file *filp, char *buf,size_t count,loff_t *f_ops)
 {
@@ -77,6 +78,20 @@ static int autoget_hwctl_ioctl(struct inode * inode, struct file * file, unsigne
 				gpio_set_value(GPIO_OUT_MOTORST, 0);
 		}
 		break;
+
+	case HWC_IOW_MCUNOTIFY:
+		retval = __get_user(tmp, (u8 __user *)argp);
+		if (retval == 0) {
+			if(tmp)
+				gpio_set_value(GPIO_OUT_MCUNOTIFY, 1);
+			else
+				gpio_set_value(GPIO_OUT_MCUNOTIFY, 0);
+		}
+		break;
+
+	default:
+		printk("Error hwctrl commad, please check it(%d)! \n", cmd);
+		return -EIO;
 	}
 	return retval;
 }
@@ -91,14 +106,10 @@ static int autoget_hwctl_close(struct inode * inode, struct file * file)
 	return 0;
 }
 
-static ssize_t moto_reset_show(struct device *dev, struct device_attribute *attr, char *buf)
-{
-	return sprintf(buf, "%u\n", moto_reset);
-}
 
 static ssize_t moto_reset_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t size)
 {
-	moto_reset = simple_strtoul(buf, NULL, 10);
+	int moto_reset = simple_strtoul(buf, NULL, 10);
 
 	if(moto_reset){
 		gpio_set_value(GPIO_OUT_MOTORST, 1);
@@ -108,6 +119,20 @@ static ssize_t moto_reset_store(struct device *dev, struct device_attribute *att
 
 	return size;
 }
+
+static ssize_t mcu_notify_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t size)
+{
+	int mcu_notify = simple_strtoul(buf, NULL, 10);
+
+	if(mcu_notify){
+		gpio_set_value(GPIO_OUT_MCUNOTIFY, 1);
+	}else{
+		gpio_set_value(GPIO_OUT_MCUNOTIFY, 0);
+	}
+
+	return size;
+}
+
 
 struct file_operations autoget_hwctl_fops = {
 	.read		= autoget_hwctl_read,
@@ -123,10 +148,13 @@ static struct miscdevice autoget_hwctl_dev = {
 	.fops         = &autoget_hwctl_fops,
 };
 
-static DEVICE_ATTR(moto_reset, 0644, moto_reset_show, moto_reset_store);
+static DEVICE_ATTR(moto_reset, S_IWUSR, NULL, moto_reset_store);
+static DEVICE_ATTR(mcu_notify, S_IWUSR, NULL, mcu_notify_store);
+
 
 static struct attribute *autoget_hwctl_attributes[] = {
 	&dev_attr_moto_reset.attr,
+	&dev_attr_mcu_notify.attr,
 	NULL,
 };
 
