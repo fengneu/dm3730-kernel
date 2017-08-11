@@ -192,6 +192,24 @@ static int autoget_gpio_init(void)
 	}
 	gpio_direction_input(GPIO_IN_DSSW);
 
+	/* moto reset */
+	ret = gpio_request(GPIO_OUT_MOTORST, "moto reset");
+	if (ret < 0) {
+		printk(KERN_ERR "Failed to request GPIO %d for moto reset\n",
+				GPIO_OUT_MOTORST);
+		return ret;
+	}
+	gpio_direction_output(GPIO_OUT_MOTORST, 1);
+
+	/* moto reset */
+	ret = gpio_request(GPIO_OUT_MCUNOTIFY, "mcu notify");
+	if (ret < 0) {
+		printk(KERN_ERR "Failed to request GPIO %d for mcu notify\n",
+				GPIO_OUT_MCUNOTIFY);
+		return ret;
+	}
+	gpio_direction_output(GPIO_OUT_MCUNOTIFY, 0);
+
 	return 0;
 }
 

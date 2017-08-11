@@ -888,6 +888,7 @@ struct spi_board_info omap3autoget_spi_board_info[] = {
 		.max_speed_hz = 800000,     /* max spi clock (SCK) speed in HZ */
 		.bus_num = 3,
 		.chip_select = 0,
+		.mode = SPI_MODE_3,
 	},
 #endif
 
