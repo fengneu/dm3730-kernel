@@ -831,26 +831,26 @@ static struct omap2_mcspi_device_config ads7846_mcspi_config = {
 	.single_channel	= 1,	/* 0: slave, 1: master */
 };
 
-#define SPI1_GPIO_SCK		171
-#define SPI1_GPIO_MOSI		172
-#define SPI1_GPIO_MISO		173
-#define SPI1_GPIO_CS0		174
-#define SPI1_GPIO_CS1		175
-#define SPI1_GPIO_CS2		176
 
 #if defined(CONFIG_SPI_GPIO) || defined(CONFIG_SPI_GPIO_MODULE)
-static struct spi_gpio_platform_data spi_gpio_info = {
-	.sck			= SPI1_GPIO_SCK,
-	.mosi			= SPI1_GPIO_MOSI,
-	.miso			= SPI1_GPIO_MISO,
-	.num_chipselect		= 4,
+#define LCD_GPIO_SCL        20
+#define LCD_GPIO_SDA        13
+#define LCD_GPIO_SDO        12
+#define LCD_GPIO_CS         18
+
+
+static struct spi_gpio_platform_data aglcd_spi_gpio_pdata = {
+	.sck			= LCD_GPIO_SCL,
+	.mosi			= LCD_GPIO_SDA,
+	.miso			= LCD_GPIO_SDO,
+	.num_chipselect		= 1,
 };
 
-static struct platform_device agspi_gpio = {
+static struct platform_device aglcd_spi_gpio = {
 	.name	= "spi_gpio",
-	.id		= 1,
+	.id		= 5,	/* bus_num */
 	.dev	= {
-		.platform_data	= &spi_gpio_info,
+		.platform_data	= &aglcd_spi_gpio_pdata,
 	},
 };
 #endif	/* CONFIG_SPI_GPIO */
@@ -891,6 +891,16 @@ struct spi_board_info omap3autoget_spi_board_info[] = {
 		.mode = SPI_MODE_3,
 	},
 #endif
+#if defined(CONFIG_PANEL_AUTOGET) && defined(CONFIG_SPI_GPIO)
+	[4] = {
+		.modalias         = "lg4573_panel-spi",
+		.max_speed_hz     = 200000,     /* max spi clock (SCK) speed in HZ */
+		.bus_num          = 5,
+		.chip_select      = 0,
+		.controller_data  = (void*)LCD_GPIO_CS,
+		.mode             = SPI_MODE_3,
+	},
+#endif
 
 };
 
@@ -924,7 +934,7 @@ static void __init omap3_autoget_init_irq(void)
 static struct platform_device *omap3_autoget_devices[] __initdata = {
 	&leds_gpio,
 	&keys_gpio,
-//	&agspi_gpio,
+	&aglcd_spi_gpio,
 	&autoget_dss_device,
 	&omap3autoget_bklight_device,
 };
