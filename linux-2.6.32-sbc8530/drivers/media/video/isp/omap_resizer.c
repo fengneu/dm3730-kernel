@@ -221,7 +221,7 @@ struct rsz_fh {
 
 static struct device_params *device_config;
 static struct device *rsz_device;
-static bool is_vm_io;
+static bool is_vm_io[VIDEO_MAX_FRAME];
 static int rsz_major = -1;
 /* functions declaration */
 static void rsz_hardware_setup(struct channel_config *rsz_conf_chan);
@@ -1295,7 +1295,7 @@ static int rsz_vbq_prepare(struct videobuf_queue *q,
 			spin_unlock(&fh->vbq_lock);
 			if (0 != err)
 				return err;
-			is_vm_io = 1;
+			is_vm_io[vb->i] = 1;
 		} else {
 			err = videobuf_iolock(q, vb, NULL);
 			/*
@@ -1316,7 +1316,7 @@ static int rsz_vbq_prepare(struct videobuf_queue *q,
 			if (err)
 				goto buf_release;
 			spin_unlock(&fh->vbq_lock);
-			is_vm_io = 0;
+			is_vm_io[vb->i] = 0;
 		}
 		isp_addr = ispmmu_vmap(fh->dev, dma->sglist, dma->sglen);
 		if (!isp_addr || IS_ERR_VALUE(isp_addr))
@@ -1500,6 +1500,7 @@ static int rsz_release(struct inode *inode, struct file *filp)
 		timeout++;
 		schedule();
 	}
+
 	/* Free memory allocated to the buffers */
 	for (i = 0 ; i < VIDEO_MAX_FRAME ; i++) {
 		struct videobuf_dmabuf *dma = NULL;
@@ -1507,7 +1508,7 @@ static int rsz_release(struct inode *inode, struct file *filp)
 		if (!q->bufs[i])
 			continue;
 		dma = videobuf_to_dma(q->bufs[i]);
-		if (is_vm_io) {
+		if (is_vm_io[i]) {
 			vfree(dma->sglist);
 			dma->sglist = NULL;
 			dma->sglen = 0;
