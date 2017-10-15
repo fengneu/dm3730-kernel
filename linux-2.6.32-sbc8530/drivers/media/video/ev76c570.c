@@ -186,9 +186,9 @@ static struct ev76c570_reg initial_common_regs[] = {
 };
 
 static struct ev76c570_reg initial_setup_regs[] = {
-	{EV76C570_16BIT, 0x04, 0x8869},
+	{EV76C570_16BIT, 0x04, 0x8866},
 	{EV76C570_16BIT, 0x05, 0x0000},
-	{EV76C570_16BIT, 0x06, 0xD05A},
+	{EV76C570_16BIT, 0x06, 0x345A},
 	{EV76C570_16BIT, 0x07, 0x0A01},
 	{EV76C570_16BIT, 0x08, 0xDF21},
 	{EV76C570_16BIT, 0x09, 0x6335},
@@ -272,7 +272,7 @@ static struct ev76c570_reg initial_setup_regs[] = {
 	//{EV76C570_16BIT, 0x47, 0x036F},
 	{EV76C570_16BIT, 0x47, 0x034F},
 	{EV76C570_16BIT, 0x48, 0xFFFD},
-	{EV76C570_16BIT, 0x49, 0x8D6F},
+	{EV76C570_16BIT, 0x49, 0x7A6F},
 	{EV76C570_16BIT, 0x4A, 0xBAC8},
 	{EV76C570_16BIT, 0x4B, 0x0127},
 	{EV76C570_16BIT, 0x4C, 0x0B1E},
