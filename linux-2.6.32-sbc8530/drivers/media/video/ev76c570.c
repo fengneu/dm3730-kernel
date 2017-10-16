@@ -27,13 +27,13 @@
 #define EV76C570_DEF_GAIN	0x00
 #define EV76C570_GAIN_STEP   	0x1
 
-/* Exposure time values, for 57MHz CLK_CTRL & 0xC9 line_length,
- * step is 21.89us
+/* Exposure time values, REF_CLK=24MHz, DATA_CLK=75MHz,
+ * and 37.5MHz CLK_CTRL & 0x67 line_length, step is 21.97us
  */
-#define EV76C570_DEF_MIN_EXPOSURE	0x000F	/* 15ms */
-#define EV76C570_DEF_MAX_EXPOSURE	0x03E8	/* 1000ms */
-#define EV76C570_DEF_EXPOSURE	    0x0028
-#define EV76C570_EXPOSURE_STEP      1
+#define EV76C570_DEF_MIN_EXPOSURE	40	/* 40ms */
+#define EV76C570_DEF_MAX_EXPOSURE	1000	/* 1000ms */
+#define EV76C570_DEF_EXPOSURE		67
+#define EV76C570_EXPOSURE_STEP		1
 
 
 /* capture 2 MP */
@@ -191,14 +191,13 @@ static struct ev76c570_reg initial_setup_regs[] = {
 	{EV76C570_16BIT, 0x06, 0x345A},
 	{EV76C570_16BIT, 0x07, 0x0A01},
 	{EV76C570_16BIT, 0x08, 0xDF21},
-	{EV76C570_16BIT, 0x09, 0x6335},
+	{EV76C570_16BIT, 0x09, 0x6331},	/* DATA_CLK=75MHz with CLK_REF=24MHz */
 	//{EV76C570_16BIT, 0x0A, 0x02C1},
 	{EV76C570_16BIT, 0x0A, 0x02C0},
 	{EV76C570_16BIT, 0x0B, 0x0006},
 	{EV76C570_16BIT, 0x0C, 0x0000},
 	{EV76C570_16BIT, 0x0D, 0x0000},
-	//{EV76C570_16BIT, 0x0E, 0x186A},
-	{EV76C570_16BIT, 0x0E, 0x0720},
+	{EV76C570_16BIT, 0x0E, 0x0BDA},
 	{EV76C570_16BIT, 0x0F, 0x0000},
 
 	{EV76C570_16BIT, 0x10, 0x0000},
@@ -570,7 +569,7 @@ static int ev76c570_set_exposure_time(u32 exp_time, struct v4l2_int_device *s,
 		return -EINVAL;
 	}
 
-	/* for line_length & clk_ctrl, 21.89us per step */
+	/* for line_length & clk_ctrl, 21.97us per step */
 	coarse_int_time = (exp_time * 1000) / 22;
 
 	set_exposure_time[0].val = coarse_int_time;	/* Analog Gain */
