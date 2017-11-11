@@ -180,6 +180,7 @@ static struct omap_dss_device autoget_lcd_device = {
 	.driver_name            = "lg4573_panel",
 	.type                   = OMAP_DISPLAY_TYPE_DPI,
 	.phy.dpi.data_lines     = 24,
+	.panel.recommended_bpp  = 16,
 	.platform_enable        = omap3_autoget_enable_lcd,
 	.platform_disable       = omap3_autoget_disable_lcd,
 };
@@ -217,7 +218,7 @@ static void omap3autoget_set_bl_intensity(int intensity)
 static struct generic_bl_info omap3autoget_bl_platform_data = {
         .name                   = "omap-backlight",
         .max_intensity          = 100,
-        .default_intensity      = 70,
+        .default_intensity      = 30,
         .limit_mask             = 0,
         .set_bl_intensity       = omap3autoget_set_bl_intensity,
         .kick_battery           = NULL,
