@@ -672,11 +672,21 @@ static struct i2c_board_info __initdata autoget_i2c1_boardinfo[] = {
 };
 
 #include <media/v4l2-int-device.h>
+#if defined(CONFIG_VIDEO_EV76C570) || defined(CONFIG_VIDEO_EV76C570_MODULE)
+#include <media/ev76c570.h>
+extern struct ev76c570_platform_data autoget_ev76c570_platform_data;
+#endif
+#if defined(CONFIG_VIDEO_MT9P031) || defined(CONFIG_VIDEO_MT9P031_MODULE)
+#include <media/mt9p031.h>
+extern struct mt9p031_platform_data autoget_mt9p031_platform_data;
+#endif
 
 extern void autoget_cam_init(void);
 
 #define TMD2772X_I2C_ADDR	0x39
 #define BQ27541_I2C_ADDR	0x55
+#define MT9P031_I2C_ADDR	0xBA
+
 #define TMD2772_IRQ_GPIO	41
 
 static struct i2c_board_info __initdata autoget_i2c2_boardinfo[] = {
@@ -691,6 +701,12 @@ static struct i2c_board_info __initdata autoget_i2c2_boardinfo[] = {
 		I2C_BOARD_INFO("bq27541", BQ27541_I2C_ADDR),
 		//.platform_data = &sbc8530_ov2656_platform_data,
 	},
+#if defined(CONFIG_VIDEO_MT9P031) || defined(CONFIG_VIDEO_MT9P031_MODULE)
+	{
+		I2C_BOARD_INFO("mt9p031", MT9P031_I2C_ADDR),
+		.platform_data = &autoget_mt9p031_platform_data,
+	},
+#endif
 };
 
 static int __init omap3_autoget_i2c_init(void)
@@ -856,11 +872,6 @@ static struct platform_device aglcd_spi_gpio = {
 };
 #endif	/* CONFIG_SPI_GPIO */
 
-#include <media/v4l2-int-device.h>
-#if defined(CONFIG_VIDEO_EV76C570) || defined(CONFIG_VIDEO_EV76C570_MODULE)
-#include <media/ev76c570.h>
-extern struct ev76c570_platform_data autoget_ev76c570_platform_data;
-#endif
 
 struct spi_board_info omap3autoget_spi_board_info[] = {
 	[0] = {

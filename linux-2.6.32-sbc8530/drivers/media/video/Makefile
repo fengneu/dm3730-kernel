@@ -130,6 +130,7 @@ obj-$(CONFIG_VIDEO_OV3640)	+= ov3640.o
 obj-$(CONFIG_VIDEO_IMX046)      += imx046.o
 obj-$(CONFIG_VIDEO_LV8093)      += lv8093.o
 obj-$(CONFIG_VIDEO_EV76C570)     += ev76c570.o
+obj-$(CONFIG_VIDEO_MT9P031)     += mt9p031.o
 
 obj-$(CONFIG_USB_DABUSB)        += dabusb.o
 obj-$(CONFIG_USB_OV511)         += ov511.o

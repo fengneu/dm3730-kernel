@@ -352,6 +352,14 @@ config VIDEO_EV76C570
 	  2Mpixels B&W and Color CMOS camera. It is currently working with
 	  the TI OMAP3 camera controller.
 
+config VIDEO_MT9P031
+	tristate "Micron MT9P031 raw sensor driver (5MP)"
+	depends on I2C && VIDEO_V4L2
+	---help---
+	  This is a Video4Linux2 sensor-level driver for the Micron
+	  MT9P031 camera.  It is currently working with the TI OMAP3
+	  camera controller.
+
 
 config VIDEO_DW9710
 	tristate "Lens driver for DW9710"
