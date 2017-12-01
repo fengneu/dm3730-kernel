@@ -195,7 +195,8 @@ static int mt9p031_sensor_power_set(struct v4l2_int_device *s,
 			twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
 					VAUX_DEV_GRP_P1, TWL4030_VAUX4_DEV_GRP);
 
-			gpio_direction_output(GPIO_CAM_TRIG, 0);
+			/* Set STANDBY_BAR to High */
+			gpio_direction_output(GPIO_CAM_TRIG, 1);
 			gpio_direction_output(GPIO_CAM_RSTN, 0);
 			mdelay(10);
 			gpio_direction_output(GPIO_CAM_RSTN, 1);
@@ -210,6 +211,7 @@ static int mt9p031_sensor_power_set(struct v4l2_int_device *s,
 		gpio_direction_output(GPIO_CAM_RSTN, 0);
 		break;
 	case V4L2_POWER_STANDBY:
+		gpio_direction_output(GPIO_CAM_TRIG, 0);	/* Stamdby */
 		break;
 	}
 	previous_power = power;
