@@ -225,10 +225,25 @@ static u32 mt9p031_sensor_set_xclk(struct v4l2_int_device *s, u32 xclkfreq)
 	return isp_set_xclk(vdev->cam->isp, xclkfreq, LDPCAM_USE_XCLKB);
 }
 
+static int mt9p031_sensor_reset(struct v4l2_int_device *s, int active)
+{
+	if (active) /* Ensure RESET_BAR is low */
+		gpio_direction_output(GPIO_CAM_RSTN, 0);
+	else	/* Now RESET_BAR must be high */
+		gpio_direction_output(GPIO_CAM_RSTN, 1);
+
+	return 0;
+}
+
+
 struct mt9p031_platform_data autoget_mt9p031_platform_data = {
-	.power_set	 = mt9p031_sensor_power_set,
-	.priv_data_set	 = mt9p031_sensor_set_prv_data,
-	.set_xclk	 = mt9p031_sensor_set_xclk,
+	.power_set      = mt9p031_sensor_power_set,
+	.priv_data_set  = mt9p031_sensor_set_prv_data,
+	.set_xclk       = mt9p031_sensor_set_xclk,
+	.reset          = mt9p031_sensor_reset,
+
+	.ext_freq       = 21000000,
+	.target_freq    = 48000000,
 };
 
 

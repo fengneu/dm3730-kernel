@@ -28,7 +28,11 @@
 struct mt9p031_platform_data {
 	int (*power_set)(struct v4l2_int_device *s, enum v4l2_power power);
 	u32 (*set_xclk)(struct v4l2_int_device *s, u32 xclkfreq);
-	int (*priv_data_set)(struct v4l2_int_device *s, void *);
+	int (*priv_data_set)(struct v4l2_int_device *s, void *priv);
+	int (*reset)(struct v4l2_int_device *s, int active);
+
+	int ext_freq; /* input frequency to the mt9p031 for PLL dividers */
+	int target_freq; /* frequency target for the PLL */
 };
 
 #endif /* ifndef MT9P031_H */
